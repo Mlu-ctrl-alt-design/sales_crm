@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+package-lock.json
+
+# Expo
+.expo/
+android/
+ios/
 
 # Environment variables (contains secrets)
 .env
