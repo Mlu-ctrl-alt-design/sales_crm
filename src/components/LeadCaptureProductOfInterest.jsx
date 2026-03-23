@@ -41,17 +41,25 @@ function ProgressSteps({ steps }) {
   );
 }
 
-function SelectField({ label, placeholder }) {
+function SelectField({ label, placeholder, value, onChange, options = [] }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="font-['Inter',sans-serif] font-medium text-[14px] leading-5 text-[#344054]">
         {label}
       </label>
-      <div className="bg-white border border-[#d0d5dd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-between gap-2 px-3.5 py-2.5 w-full cursor-pointer">
-        <span className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#667085] truncate">
-          {placeholder}
-        </span>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+      <div className="bg-white border border-[#d0d5dd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center gap-2 px-3.5 py-2.5 w-full relative">
+        <select
+          value={value}
+          onChange={onChange}
+          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 bg-transparent outline-none appearance-none w-full"
+          style={{ color: value ? '#101828' : '#667085' }}
+        >
+          <option value="" disabled>{placeholder}</option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 pointer-events-none">
           <path d="M5 7.5l5 5 5-5" stroke="#667085" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
@@ -59,7 +67,7 @@ function SelectField({ label, placeholder }) {
   );
 }
 
-function InputField({ label, placeholder }) {
+function InputField({ label, placeholder, value, onChange }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="font-['Inter',sans-serif] font-medium text-[14px] leading-5 text-[#344054]">
@@ -69,14 +77,29 @@ function InputField({ label, placeholder }) {
         <input
           type="text"
           placeholder={placeholder}
-          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#667085] placeholder-[#667085] bg-transparent outline-none"
+          value={value}
+          onChange={onChange}
+          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#101828] placeholder-[#667085] bg-transparent outline-none"
         />
       </div>
     </div>
   );
 }
 
-export default function LeadCaptureProductOfInterest({ onBack }) {
+export default function LeadCaptureProductOfInterest({
+  onBack,
+  formData,
+  onChange,
+  onSaveAndContinue,
+  onSaveAndClose,
+  loading = false,
+  error = null,
+}) {
+  const canContinue =
+    formData.startTrail !== '' &&
+    formData.prospectValue.trim() !== '' &&
+    formData.businessUnit.trim() !== ''
+
   return (
     <div className="bg-white flex flex-col items-center overflow-clip rounded-[24px] w-full min-h-full">
       {/* iOS Status Bar */}
@@ -141,27 +164,62 @@ export default function LeadCaptureProductOfInterest({ onBack }) {
 
             {/* Form Fields */}
             <div className="flex flex-col gap-4 w-full">
-              <SelectField label="Start Trail" placeholder="Choose an option" />
-              <InputField label="Prospect Value" placeholder="R0.00" />
-              <InputField label="Business Unit" placeholder="Business Unit" />
+              <SelectField
+                label="Start Trail"
+                placeholder="Choose an option"
+                value={formData.startTrail}
+                onChange={e => onChange('startTrail', e.target.value)}
+                options={["30 days", "60 days", "90 days", "120 days"]}
+              />
+              <InputField
+                label="Prospect Value"
+                placeholder="R0.00"
+                value={formData.prospectValue}
+                onChange={e => onChange('prospectValue', e.target.value)}
+              />
+              <InputField
+                label="Business Unit"
+                placeholder="Business Unit"
+                value={formData.businessUnit}
+                onChange={e => onChange('businessUnit', e.target.value)}
+              />
             </div>
 
-            {/* Spacer to push buttons toward bottom */}
+            {/* Spacer */}
             <div className="flex-1" />
+
+            {/* Error message */}
+            {error && (
+              <p className="font-['Inter',sans-serif] text-sm text-red-600 text-center px-2">
+                {error}
+              </p>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2.5 w-full pb-4">
               <button
-                disabled
-                className="bg-[#f2f4f7] border border-[#e4e7ec] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full cursor-not-allowed"
+                disabled={!canContinue || loading}
+                onClick={onSaveAndContinue}
+                className={`rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full transition-colors ${
+                  canContinue && !loading
+                    ? 'bg-[#0086c9] border border-[#0086c9] cursor-pointer'
+                    : 'bg-[#f2f4f7] border border-[#e4e7ec] cursor-not-allowed'
+                }`}
               >
-                <span className="font-['Inter',sans-serif] font-semibold text-[16px] leading-6 text-[#98a2b3]">
-                  Save &amp; Continue
+                <span className={`font-['Inter',sans-serif] font-semibold text-[16px] leading-6 ${
+                  canContinue && !loading ? 'text-white' : 'text-[#98a2b3]'
+                }`}>
+                  {loading ? 'Saving…' : 'Save & Continue'}
                 </span>
               </button>
-              <button className="relative bg-white border border-[#7cd4fd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(16,24,40,0.18),inset_0px_-2px_0px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full">
+
+              <button
+                disabled={loading}
+                onClick={onSaveAndClose}
+                className="relative bg-white border border-[#7cd4fd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(16,24,40,0.18),inset_0px_-2px_0px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full disabled:opacity-60"
+              >
                 <span className="font-['Inter',sans-serif] font-semibold text-[16px] leading-6 text-[#026aa2]">
-                  Save &amp; Close
+                  {loading ? 'Saving…' : 'Save & Close'}
                 </span>
               </button>
             </div>

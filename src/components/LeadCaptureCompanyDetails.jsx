@@ -2,10 +2,9 @@ function StepIcon({ status = "incomplete" }) {
   if (status === "complete") {
     return (
       <div className="relative rounded-full size-6 bg-[#f0f9ff] shrink-0 overflow-clip">
-        {/* checkmark */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="12" fill="#f0f9ff" />
-          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="#0ba5ec" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="12" fill="#0086c9" />
+          <path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     );
@@ -22,7 +21,6 @@ function StepIcon({ status = "incomplete" }) {
       </div>
     );
   }
-  // incomplete
   return (
     <div className="relative rounded-full size-6 bg-[#f9fafb] shrink-0 border-[1.5px] border-[#e4e7ec] flex items-center justify-center">
       <div className="size-2 rounded-full bg-[#d0d5dd]" />
@@ -45,7 +43,7 @@ function ProgressSteps({ steps = ["current", "incomplete", "incomplete"] }) {
   );
 }
 
-function InputField({ label, placeholder, required = false, type = "text" }) {
+function InputField({ label, placeholder, required = false, type = "text", value, onChange }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <div className="flex gap-0.5 items-center">
@@ -60,25 +58,34 @@ function InputField({ label, placeholder, required = false, type = "text" }) {
         <input
           type={type}
           placeholder={placeholder}
-          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#667085] placeholder-[#667085] bg-transparent outline-none w-full"
+          value={value}
+          onChange={onChange}
+          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#101828] placeholder-[#667085] bg-transparent outline-none w-full"
         />
       </div>
     </div>
   );
 }
 
-function SelectField({ label, placeholder }) {
+function SelectField({ label, placeholder, value, onChange }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <label className="font-['Inter',sans-serif] font-medium text-[14px] leading-5 text-[#344054]">
         {label}
       </label>
-      <div className="bg-white border border-[#d0d5dd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-between gap-2 px-3.5 py-2.5 w-full cursor-pointer">
-        <span className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#667085] truncate">
-          {placeholder}
-        </span>
-        {/* chevron-down */}
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+      <div className="bg-white border border-[#d0d5dd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center gap-2 px-3.5 py-2.5 w-full relative">
+        <select
+          value={value}
+          onChange={onChange}
+          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 bg-transparent outline-none appearance-none w-full text-[#101828]"
+          style={{ color: value ? '#101828' : '#667085' }}
+        >
+          <option value="" disabled>{placeholder}</option>
+          <option value="prospect">Prospect</option>
+          <option value="customer">Customer</option>
+          <option value="partner">Partner</option>
+        </select>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0 pointer-events-none">
           <path d="M5 7.5l5 5 5-5" stroke="#667085" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
@@ -86,7 +93,7 @@ function SelectField({ label, placeholder }) {
   );
 }
 
-function TextareaField({ label, placeholder, required = false }) {
+function TextareaField({ label, placeholder, required = false, value, onChange }) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
       <div className="flex gap-0.5 items-center">
@@ -100,16 +107,14 @@ function TextareaField({ label, placeholder, required = false }) {
       <div className="relative bg-white border border-[#d0d5dd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-start px-3.5 py-3 w-full min-h-[66px]">
         <textarea
           placeholder={placeholder}
+          value={value}
+          onChange={onChange}
           rows={2}
-          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#667085] placeholder-[#667085] bg-transparent outline-none resize-none w-full"
+          className="flex-1 font-['Inter',sans-serif] font-normal text-[16px] leading-6 text-[#101828] placeholder-[#667085] bg-transparent outline-none resize-none w-full"
         />
-        {/* resize handle */}
         <svg
           className="absolute bottom-1.5 right-1.5 text-[#98a2b3]"
-          width="12"
-          height="12"
-          viewBox="0 0 12 12"
-          fill="none"
+          width="12" height="12" viewBox="0 0 12 12" fill="none"
         >
           <path d="M11 1L1 11M11 6L6 11" stroke="#98a2b3" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
@@ -118,7 +123,17 @@ function TextareaField({ label, placeholder, required = false }) {
   );
 }
 
-export default function LeadCaptureCompanyDetails({ onBack }) {
+export default function LeadCaptureCompanyDetails({
+  onBack,
+  formData,
+  onChange,
+  onSaveAndContinue,
+  onSaveAndClose,
+  loading = false,
+  error = null,
+}) {
+  const canContinue = formData.telephone.trim() !== '' && formData.company.trim() !== ''
+
   return (
     <div className="bg-white flex flex-col items-center overflow-clip rounded-[24px] w-full min-h-full">
       {/* iOS Status Bar */}
@@ -181,48 +196,110 @@ export default function LeadCaptureCompanyDetails({ onBack }) {
               <hr className="border-0 border-t border-[#e4e7ec] w-full" />
             </div>
 
-            {/* Progress Steps */}
+            {/* Progress Steps — step 1 current */}
             <div className="flex items-center justify-center w-full shrink-0 py-1">
               <ProgressSteps steps={["current", "incomplete", "incomplete"]} />
             </div>
 
             {/* Form Fields */}
             <div className="flex flex-col gap-4 w-full">
-              <SelectField label="Customer" placeholder="Type in a customer" />
-              <InputField label="Telephone" placeholder="" required type="tel" />
-              <InputField label="Company" placeholder="Name of company" required />
-              <InputField label="Email" placeholder="name@example.com" type="email" />
+              <SelectField
+                label="Customer"
+                placeholder="Type in a customer"
+                value={formData.customer}
+                onChange={e => onChange('customer', e.target.value)}
+              />
+              <InputField
+                label="Telephone"
+                placeholder=""
+                required
+                type="tel"
+                value={formData.telephone}
+                onChange={e => onChange('telephone', e.target.value)}
+              />
+              <InputField
+                label="Company"
+                placeholder="Name of company"
+                required
+                value={formData.company}
+                onChange={e => onChange('company', e.target.value)}
+              />
+              <InputField
+                label="Email"
+                placeholder="name@example.com"
+                type="email"
+                value={formData.email}
+                onChange={e => onChange('email', e.target.value)}
+              />
 
               {/* Physical Address + Postal Code */}
               <div className="flex gap-2.5 items-start w-full">
                 <div className="flex-[3]">
-                  <InputField label="Physical Address" placeholder="" />
+                  <InputField
+                    label="Physical Address"
+                    placeholder=""
+                    value={formData.physicalAddress}
+                    onChange={e => onChange('physicalAddress', e.target.value)}
+                  />
                 </div>
                 <div className="flex-1">
-                  <InputField label="Postal Code" placeholder="" />
+                  <InputField
+                    label="Postal Code"
+                    placeholder=""
+                    value={formData.postalCode}
+                    onChange={e => onChange('postalCode', e.target.value)}
+                  />
                 </div>
               </div>
 
-              <InputField label="Website" placeholder="www.example.com" type="url" />
-              <TextareaField label="Contact Notes" placeholder="Enter a description..." required />
+              <InputField
+                label="Website"
+                placeholder="www.example.com"
+                type="url"
+                value={formData.website}
+                onChange={e => onChange('website', e.target.value)}
+              />
+              <TextareaField
+                label="Contact Notes"
+                placeholder="Enter a description..."
+                required
+                value={formData.contactNotes}
+                onChange={e => onChange('contactNotes', e.target.value)}
+              />
             </div>
+
+            {/* Error message */}
+            {error && (
+              <p className="font-['Inter',sans-serif] text-sm text-red-600 text-center px-2">
+                {error}
+              </p>
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2.5 w-full mt-1 pb-4">
-              {/* Save & Continue — disabled */}
               <button
-                disabled
-                className="bg-[#f2f4f7] border border-[#e4e7ec] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full cursor-not-allowed"
+                disabled={!canContinue || loading}
+                onClick={onSaveAndContinue}
+                className={`rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full transition-colors ${
+                  canContinue && !loading
+                    ? 'bg-[#0086c9] border border-[#0086c9] cursor-pointer'
+                    : 'bg-[#f2f4f7] border border-[#e4e7ec] cursor-not-allowed'
+                }`}
               >
-                <span className="font-['Inter',sans-serif] font-semibold text-[16px] leading-6 text-[#98a2b3]">
-                  Save &amp; Continue
+                <span className={`font-['Inter',sans-serif] font-semibold text-[16px] leading-6 ${
+                  canContinue && !loading ? 'text-white' : 'text-[#98a2b3]'
+                }`}>
+                  {loading ? 'Saving…' : 'Save & Continue'}
                 </span>
               </button>
 
-              {/* Save & Close — active */}
-              <button className="relative bg-white border border-[#7cd4fd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(16,24,40,0.18),inset_0px_-2px_0px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full">
+              <button
+                disabled={loading}
+                onClick={onSaveAndClose}
+                className="relative bg-white border border-[#7cd4fd] rounded-lg shadow-[0px_1px_2px_0px_rgba(16,24,40,0.05),inset_0px_0px_0px_1px_rgba(16,24,40,0.18),inset_0px_-2px_0px_0px_rgba(16,24,40,0.05)] flex items-center justify-center gap-1.5 px-[18px] py-3 w-full disabled:opacity-60"
+              >
                 <span className="font-['Inter',sans-serif] font-semibold text-[16px] leading-6 text-[#026aa2]">
-                  Save &amp; Close
+                  {loading ? 'Saving…' : 'Save & Close'}
                 </span>
               </button>
             </div>
