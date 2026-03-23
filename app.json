@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Sales CRM",
+    "slug": "sales-crm",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "salescrm",
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "bundleIdentifier": "co.thedaystar.salescrm",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "co.thedaystar.salescrm",
+      "adaptiveIcon": {
+        "backgroundColor": "#0086c9"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
