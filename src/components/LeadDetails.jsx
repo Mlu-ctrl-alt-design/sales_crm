@@ -1,44 +1,43 @@
 import { useState } from 'react'
 
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex flex-col gap-1 w-full">
+      <p className="font-['Inter',sans-serif] font-semibold text-[16px] leading-[24px] text-[#101828]">{label}</p>
+      <p className="font-['Inter',sans-serif] font-normal text-[14px] leading-[20px] text-[#475467]">{value || '—'}</p>
+    </div>
+  )
+}
+
 export default function LeadDetails({ lead, onBack }) {
   const [activeTab, setActiveTab] = useState('lead_details')
 
-  if (!lead) {
-    return (
-      <div className="bg-[#f5f5f5] flex flex-col items-center justify-center rounded-[24px] w-full min-h-[600px]">
-        <p className="font-['Inter',sans-serif] text-[#475467] text-[16px]">No lead selected.</p>
-      </div>
-    )
-  }
-
   const companyFields = [
-    { label: 'Company',          value: lead.company_name               },
-    { label: 'Email',            value: lead.email_id                   },
-    { label: 'Phone',            value: lead.phone                      },
-    { label: 'Website',          value: lead.website                    },
-    { label: 'Physical Address', value: lead.custom_physical_address    },
-    { label: 'Postal Code',      value: lead.custom_postal_code         },
-    { label: 'Contact Notes',    value: lead.custom_contact_notes       },
-  ].filter(f => f.value)
+    { label: 'Company',          value: lead?.company_name },
+    { label: 'Email',            value: lead?.email_id },
+    { label: 'Phone',            value: lead?.phone },
+    { label: 'Website',          value: lead?.website },
+    { label: 'Physical Address', value: lead?.custom_physical_address },
+    { label: 'Postal Code',      value: lead?.custom_postal_code },
+    { label: 'Contact Notes',    value: lead?.custom_contact_notes },
+  ]
 
   const leadFields = [
-    { label: 'Lead Name',      value: lead.lead_name             },
-    { label: 'Start Trail',    value: lead.custom_start_trail    },
-    { label: 'Prospect Value', value: lead.custom_prospect_value },
-    { label: 'Business Unit',  value: lead.custom_business_unit  },
-    { label: 'Status',         value: lead.status                },
-    { label: 'Lead ID',        value: lead.name                  },
-  ].filter(f => f.value)
+    { label: 'Lead Name',      value: lead?.lead_name },
+    { label: 'Start Trail',    value: lead?.custom_start_trail },
+    { label: 'Prospect Value', value: lead?.custom_prospect_value },
+    { label: 'Business Unit',  value: lead?.custom_business_unit },
+    { label: 'Lead ID',        value: lead?.name },
+    { label: 'Status',         value: lead?.status },
+  ]
 
-  const displayFields = activeTab === 'company_details' ? companyFields : leadFields
+  const activeFields = activeTab === 'company_details' ? companyFields : leadFields
 
   return (
     <div className="bg-[#f5f5f5] flex flex-col items-center overflow-clip rounded-[24px] w-full min-h-full">
       {/* iOS Status Bar */}
       <div className="bg-white flex items-center justify-between px-4 py-2 w-full shrink-0">
-        <span className="font-['Inter',sans-serif] font-normal text-[15px] text-black tracking-[-0.3px]">
-          9:41
-        </span>
+        <span className="font-['Inter',sans-serif] font-normal text-[15px] text-black tracking-[-0.3px]">9:41</span>
         <div className="flex items-center gap-1.5">
           <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
             <rect x="0" y="6" width="3" height="6" rx="1" fill="black"/>
@@ -81,17 +80,16 @@ export default function LeadDetails({ lead, onBack }) {
               <div className="flex flex-col gap-3 items-start w-full">
                 <div className="flex flex-col gap-1.5 items-start w-full">
                   <p className="font-['Inter',sans-serif] font-semibold text-[18px] leading-[28px] text-[#101828] w-full">
-                    {lead.lead_name || lead.company_name || 'New Lead'}
+                    {lead?.lead_name || lead?.company_name || 'New Lead'}
                   </p>
                   <div className="flex flex-col gap-0 w-full">
-                    {/* email + phone */}
                     <div className="flex gap-2 items-center h-8 w-full">
                       <div className="flex flex-1 gap-2.5 items-center">
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                           <path d="M1.5 4.5A1.5 1.5 0 013 3h12a1.5 1.5 0 011.5 1.5v9A1.5 1.5 0 0115 15H3a1.5 1.5 0 01-1.5-1.5v-9zm1.5 0v.621l6 3.75 6-3.75V4.5H3zm12 2.379l-5.553 3.47a.75.75 0 01-.794 0L3 6.879V13.5h12V6.879z" fill="#475467"/>
                         </svg>
                         <span className="font-['Inter',sans-serif] font-normal text-[12px] leading-[18px] text-[#475467] whitespace-nowrap">
-                          {lead.email_id || '—'}
+                          {lead?.email_id || '—'}
                         </span>
                       </div>
                       <div className="flex flex-1 gap-2.5 items-center">
@@ -99,18 +97,17 @@ export default function LeadDetails({ lead, onBack }) {
                           <path d="M6.63 4.32C6.44 3.84 5.89 3 5.28 3 4.18 3 3 4.16 3 5.26c0 .7.3 1.39.73 2.1.65 1.06 1.66 2.16 2.78 3.14 1.12.98 2.4 1.85 3.54 2.38.77.36 1.55.62 2.2.62 1.1 0 2.26-1.18 2.26-2.28 0-.6-.82-1.14-1.32-1.35l-1.04-.47c-.5-.22-.97-.02-1.18.22l-.46.54c-.24.27-.63.27-.63.27s-1.75-.63-3.05-2.4c0 0-.13-.37.07-.65l.49-.61c.2-.27.35-.76.1-1.26l-.59-1.18z" fill="#475467"/>
                         </svg>
                         <span className="font-['Inter',sans-serif] font-normal text-[12px] leading-[18px] text-[#475467] whitespace-nowrap">
-                          {lead.phone || '—'}
+                          {lead?.phone || '—'}
                         </span>
                       </div>
                     </div>
-                    {/* company */}
                     <div className="flex gap-2 items-center h-8 w-full">
                       <div className="flex flex-1 gap-2.5 items-center">
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                           <path d="M3 15.75V3.75A.75.75 0 013.75 3h10.5a.75.75 0 01.75.75V15.75M3 15.75H1.5M3 15.75h3M16.5 15.75H15M16.5 15.75H15M6 15.75v-3.75h6v3.75M6 15.75h6M6.75 6H7.5M10.5 6h.75M6.75 9H7.5M10.5 9h.75" stroke="#475467" strokeWidth="1.125" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                         <span className="font-['Inter',sans-serif] font-normal text-[12px] leading-[18px] text-[#475467] whitespace-nowrap">
-                          {lead.company_name || '—'}
+                          {lead?.company_name || '—'}
                         </span>
                       </div>
                     </div>
@@ -162,34 +159,33 @@ export default function LeadDetails({ lead, onBack }) {
 
             {/* Details Section */}
             <div className="bg-white flex flex-col gap-4 pb-8 pt-4 px-1 rounded-b-2xl w-full">
-              <div className="px-4">
-                <p className="font-['Inter',sans-serif] text-[#101828]">
-                  <span className="font-semibold text-[16px] leading-[24px]">Lead ID:</span>
-                  <span className="font-normal text-[14px] leading-[20px] text-[#475467]">{" "}{lead.name || '—'}</span>
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-5 px-4 w-full">
-                {displayFields.length > 0 ? displayFields.map(({ label, value }) => (
-                  <div key={label} className="flex flex-col gap-1 w-full">
-                    <p className="font-['Inter',sans-serif] font-semibold text-[16px] leading-[24px] text-[#101828] w-full">
-                      {label}
-                    </p>
-                    <p className="font-['Inter',sans-serif] font-normal text-[14px] leading-[20px] text-[#475467] w-full">
-                      {value}
+              {lead ? (
+                <>
+                  <div className="px-4">
+                    <p className="font-['Inter',sans-serif] text-[#101828]">
+                      <span className="font-semibold text-[16px] leading-[24px]">Lead ID:</span>
+                      <span className="font-normal text-[14px] leading-[20px] text-[#475467]">{' '}{lead.name || '—'}</span>
                     </p>
                   </div>
-                )) : (
-                  <p className="font-['Inter',sans-serif] font-normal text-[14px] text-[#667085]">
-                    No data for this tab.
+                  <div className="flex flex-col gap-5 px-4 w-full">
+                    {activeFields.map(({ label, value }) => (
+                      <DetailRow key={label} label={label} value={value} />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 px-4 gap-2">
+                  <p className="font-['Inter',sans-serif] font-semibold text-[16px] text-[#101828]">No lead selected</p>
+                  <p className="font-['Inter',sans-serif] font-normal text-[14px] text-[#475467] text-center">
+                    Create a lead using the New Lead flow to see details here.
                   </p>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
         </div>
       </main>
     </div>
-  );
+  )
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import LeadDetails from './components/LeadDetails'
-import LeadCaptureCompanyDetails from './components/LeadCaptureCompanyDetails'
-import EmptyLeadsList from './components/EmptyLeadsList'
-import LeadCaptureProductOfInterest from './components/LeadCaptureProductOfInterest'
 import { createLead } from './api/erpnext'
+import EmptyLeadsList from './components/EmptyLeadsList'
+import LeadCaptureCompanyDetails from './components/LeadCaptureCompanyDetails'
+import LeadCaptureProductOfInterest from './components/LeadCaptureProductOfInterest'
+import LeadDetails from './components/LeadDetails'
 
 const SCREENS = {
   EMPTY_LEADS:            'empty_leads',
@@ -12,26 +12,18 @@ const SCREENS = {
   LEAD_DETAILS:           'lead_details',
 }
 
-const INITIAL_COMPANY_FORM = {
-  customer: '', telephone: '', company: '', email: '',
-  physicalAddress: '', postalCode: '', website: '', contactNotes: '',
+const INIT_COMPANY = {
+  customer: '', telephone: '', company: '',
+  email: '', physicalAddress: '', postalCode: '',
+  website: '', contactNotes: '',
 }
 
-const INITIAL_PRODUCT_FORM = {
-  startTrail: '', prospectValue: '', businessUnit: '',
-}
-
-const NAV = [
-  { key: SCREENS.EMPTY_LEADS,          label: 'Empty Leads' },
-  { key: SCREENS.LEAD_CAPTURE,         label: 'Lead Capture' },
-  { key: SCREENS.LEAD_CAPTURE_PRODUCT, label: 'Product of Interest' },
-  { key: SCREENS.LEAD_DETAILS,         label: 'Lead Details' },
-]
+const INIT_PRODUCT = { startTrail: '', prospectValue: '', businessUnit: '' }
 
 function App() {
   const [screen, setScreen]           = useState(SCREENS.EMPTY_LEADS)
-  const [companyForm, setCompanyForm] = useState(INITIAL_COMPANY_FORM)
-  const [productForm, setProductForm] = useState(INITIAL_PRODUCT_FORM)
+  const [companyForm, setCompanyForm] = useState(INIT_COMPANY)
+  const [productForm, setProductForm] = useState(INIT_PRODUCT)
   const [currentLead, setCurrentLead] = useState(null)
   const [apiState, setApiState]       = useState({ loading: false, error: null })
 
@@ -56,16 +48,23 @@ function App() {
   }
 
   function handleNewLead() {
-    setCompanyForm(INITIAL_COMPANY_FORM)
-    setProductForm(INITIAL_PRODUCT_FORM)
+    setCompanyForm(INIT_COMPANY)
+    setProductForm(INIT_PRODUCT)
     setCurrentLead(null)
     setApiState({ loading: false, error: null })
     setScreen(SCREENS.LEAD_CAPTURE)
   }
 
+  const NAV = [
+    { key: SCREENS.EMPTY_LEADS,          label: 'Empty Leads' },
+    { key: SCREENS.LEAD_CAPTURE,         label: 'Company Details' },
+    { key: SCREENS.LEAD_CAPTURE_PRODUCT, label: 'Product of Interest' },
+    { key: SCREENS.LEAD_DETAILS,         label: 'Lead Details' },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col items-center justify-start p-4">
-      {/* Dev screen switcher */}
+      {/* Dev nav */}
       <div className="flex flex-wrap gap-2 mb-4 justify-center">
         {NAV.map(({ key, label }) => (
           <button
@@ -89,9 +88,9 @@ function App() {
 
         {screen === SCREENS.LEAD_CAPTURE && (
           <LeadCaptureCompanyDetails
-            onBack={() => setScreen(SCREENS.EMPTY_LEADS)}
             formData={companyForm}
             onChange={handleCompanyChange}
+            onBack={() => setScreen(SCREENS.EMPTY_LEADS)}
             onSaveAndContinue={() => {
               setApiState({ loading: false, error: null })
               setScreen(SCREENS.LEAD_CAPTURE_PRODUCT)
@@ -104,9 +103,9 @@ function App() {
 
         {screen === SCREENS.LEAD_CAPTURE_PRODUCT && (
           <LeadCaptureProductOfInterest
-            onBack={() => setScreen(SCREENS.LEAD_CAPTURE)}
             formData={productForm}
             onChange={handleProductChange}
+            onBack={() => setScreen(SCREENS.LEAD_CAPTURE)}
             onSaveAndContinue={() => handleCreateLead(productForm, SCREENS.LEAD_DETAILS)}
             onSaveAndClose={() => handleCreateLead(productForm, SCREENS.EMPTY_LEADS)}
             loading={apiState.loading}
