@@ -17,11 +17,13 @@ class AppStatus {
   final String? maintenanceMessage;
   final String? minimumAppVersion;
 
+  /// Parses Mobile Control's `mobile_auth.app_status` payload, where the
+  /// minimum app version is sent as `version`.
   factory AppStatus.fromJson(Map<String, dynamic> json) => AppStatus(
     enabled: _truthy(json['enabled']),
     maintenanceMode: _truthy(json['maintenance_mode']),
     maintenanceMessage: _blankToNull(json['maintenance_message']),
-    minimumAppVersion: _blankToNull(json['minimum_app_version']),
+    minimumAppVersion: _blankToNull(json['version']),
   );
 
   /// Disabled wins over maintenance, and maintenance over an outdated build,

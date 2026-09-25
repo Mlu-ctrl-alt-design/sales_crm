@@ -8,7 +8,7 @@ abstract class AppStatusService {
   Future<AppStatus> fetch();
 }
 
-/// Reads [AppStatus] from `daystar_mobile.api.app.get_app_status`.
+/// Reads [AppStatus] from Mobile Control's `mobile_auth.app_status`.
 ///
 /// The endpoint is guest-accessible so the gate runs before login.
 class HttpAppStatusService implements AppStatusService {
@@ -20,9 +20,7 @@ class HttpAppStatusService implements AppStatusService {
 
   @override
   Future<AppStatus> fetch() async {
-    final uri = Uri.parse(
-      '$siteUrl/api/method/daystar_mobile.api.app.get_app_status',
-    );
+    final uri = Uri.parse('$siteUrl/api/method/mobile_auth.app_status');
     final response = await _client
         .get(uri, headers: {'Accept': 'application/json'})
         .timeout(const Duration(seconds: 15));

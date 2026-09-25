@@ -10,7 +10,7 @@ flutter run --dart-define=SITE_URL=http://<bench>  # any other site, e.g. a loca
 flutter test
 ```
 
-On launch the app calls `daystar_mobile.api.app.get_app_status` and blocks
+On launch the app calls Mobile Control's `mobile_auth.app_status` and blocks
 itself when Mobile Configuration is disabled, in maintenance mode, or requires
 a newer version than the installed build.
 

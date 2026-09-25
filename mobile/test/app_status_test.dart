@@ -12,17 +12,29 @@ void main() {
     minimumAppVersion: minimum,
   );
 
-  test('parses Frappe check fields sent as 0/1', () {
+  test('parses Mobile Control payloads, with 0/1 or bool flags', () {
     final s = AppStatus.fromJson({
       'enabled': 1,
       'maintenance_mode': 0,
       'maintenance_message': '  ',
-      'minimum_app_version': '1.0.0',
+      'version': '1.0.0',
     });
     expect(s.enabled, isTrue);
     expect(s.maintenanceMode, isFalse);
     expect(s.maintenanceMessage, isNull);
     expect(s.minimumAppVersion, '1.0.0');
+  });
+
+  test('parses the payload staging returns today', () {
+    // GET crm-staging.thedaystar.co.za/api/method/mobile_auth.app_status
+    final s = AppStatus.fromJson({
+      'enabled': true,
+      'package_name': null,
+      'version': null,
+      'maintenance_mode': false,
+      'maintenance_message': '',
+    });
+    expect(s.evaluate('0.1.0'), AppGate.open);
   });
 
   test('open when enabled, no maintenance, version satisfied', () {

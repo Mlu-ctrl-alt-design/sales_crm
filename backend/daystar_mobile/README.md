@@ -5,7 +5,6 @@ and Frappe Assistant Core; it never modifies either. See `../../docs/SPEC.md`.
 
 ### Layout
 
-- `api/app.py` — guest-readable app status (enabled, maintenance, minimum version)
 - `api/dashboard.py`, `api/documents.py`, `api/assistant.py` — hero-screen endpoints (later phases)
 - `permissions.py` — role helpers and, later, Sales Team scoping hooks
 - `price_lock.py` — server-side Price List lock for the Mobile Sales Rep role
