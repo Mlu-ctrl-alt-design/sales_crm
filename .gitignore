@@ -15,8 +15,8 @@ package-lock.json
 
 # Expo
 .expo/
-android/
-ios/
+/android/
+/ios/
 
 # Environment variables (contains secrets)
 .env
