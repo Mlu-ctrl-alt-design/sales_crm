@@ -7,7 +7,30 @@ app_license = "mit"
 
 fixtures = [
 	{"dt": "Role", "filters": [["name", "=", "Mobile Sales Rep"]]},
+	{
+		"dt": "Property Setter",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Quotation Item-rate-permlevel",
+					"Quotation Item-discount_percentage-permlevel",
+					"Sales Invoice Item-rate-permlevel",
+					"Sales Invoice Item-discount_percentage-permlevel",
+				],
+			]
+		],
+	},
 ]
+
+after_install = "daystar_mobile.price_lock.setup_price_lock_permissions"
+after_migrate = "daystar_mobile.price_lock.setup_price_lock_permissions"
+
+doc_events = {
+	"Quotation": {"validate": "daystar_mobile.price_lock.validate_price_list_rates"},
+	"Sales Invoice": {"validate": "daystar_mobile.price_lock.validate_price_list_rates"},
+}
 
 # Apps
 # ------------------
@@ -180,7 +203,7 @@ required_apps = ["erpnext"]
 # Testing
 # -------
 
-# before_tests = "daystar_mobile.install.before_tests"
+before_tests = "daystar_mobile.tests.before_tests"
 
 # Extend DocType Class
 # ------------------------------
@@ -265,4 +288,3 @@ required_apps = ["erpnext"]
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
