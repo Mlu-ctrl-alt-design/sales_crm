@@ -30,6 +30,8 @@ Future<void> signIn(WidgetTester tester, String email) async {
 final iOS = TargetPlatformVariant.only(TargetPlatform.iOS);
 
 void main() {
+  group('auto-lock', lockTests);
+
   testWidgets('first sign-in offers Face ID once, and turning it on works', (
     tester,
   ) async {
@@ -158,4 +160,118 @@ void main() {
       'fingerprint',
     );
   });
+}
+
+class TestClock {
+  DateTime value = DateTime(2026, 9, 25, 9);
+  DateTime call() => value;
+}
+
+Future<void> background(WidgetTester tester) async {
+  for (final state in [
+    AppLifecycleState.inactive,
+    AppLifecycleState.hidden,
+    AppLifecycleState.paused,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+  }
+  await tester.pump();
+}
+
+Future<void> foreground(WidgetTester tester) async {
+  for (final state in [
+    AppLifecycleState.hidden,
+    AppLifecycleState.inactive,
+    AppLifecycleState.resumed,
+  ]) {
+    tester.binding.handleAppLifecycleStateChanged(state);
+  }
+  await tester.pumpAndSettle();
+}
+
+Future<TestClock> pumpUnlocked(
+  WidgetTester tester, {
+  required MemoryPrefs prefs,
+  required FakeBiometrics bio,
+}) async {
+  final clock = TestClock();
+  await tester.pumpWidget(
+    MaterialApp(
+      home: SignInFlow(
+        auth: FakeAuth(stored: const Session(user: 'mlu@example.com')),
+        prefs: prefs,
+        biometrics: bio,
+        now: clock.call,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return clock;
+}
+
+void lockTests() {
+  testWidgets('locks after 5 minutes away and keeps the app underneath', (
+    tester,
+  ) async {
+    final prefs = MemoryPrefs()
+      ..unlock = true
+      ..offered = true;
+    final bio = FakeBiometrics();
+    final clock = await pumpUnlocked(tester, prefs: prefs, bio: bio);
+    expect(bio.prompts, 1);
+
+    // Leave the app on Quick send, go away for 5 minutes.
+    await tester.tap(find.text('Quick send'));
+    await tester.pumpAndSettle();
+    bio.succeeds = false;
+    await background(tester);
+    clock.value = clock.value.add(const Duration(minutes: 5));
+    await foreground(tester);
+
+    expect(find.byKey(const Key('lock-screen')), findsOneWidget);
+    expect(bio.prompts, 2, reason: 'prompts on return');
+
+    bio.succeeds = true;
+    await tester.tap(find.byKey(const Key('unlock-biometric')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('lock-screen')), findsNothing);
+    expect(
+      find.widgetWithText(AppBar, 'Quick send'),
+      findsOneWidget,
+      reason: 'returns to where the user left off',
+    );
+  }, variant: iOS);
+
+  testWidgets('a short trip away does not lock', (tester) async {
+    final prefs = MemoryPrefs()
+      ..unlock = true
+      ..offered = true;
+    final clock = await pumpUnlocked(
+      tester,
+      prefs: prefs,
+      bio: FakeBiometrics(),
+    );
+
+    await background(tester);
+    clock.value = clock.value.add(const Duration(minutes: 4, seconds: 59));
+    await foreground(tester);
+
+    expect(find.byKey(const Key('lock-screen')), findsNothing);
+  }, variant: iOS);
+
+  testWidgets('without quick unlock the app never locks', (tester) async {
+    final clock = await pumpUnlocked(
+      tester,
+      prefs: MemoryPrefs()..offered = true,
+      bio: FakeBiometrics(),
+    );
+
+    await background(tester);
+    clock.value = clock.value.add(const Duration(hours: 2));
+    await foreground(tester);
+
+    expect(find.byKey(const Key('lock-screen')), findsNothing);
+    expect(find.byType(NavigationBar), findsOneWidget);
+  }, variant: iOS);
 }

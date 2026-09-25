@@ -53,11 +53,17 @@ class SignInFlow extends StatefulWidget {
     required this.auth,
     required this.prefs,
     required this.biometrics,
+    this.lockAfter = const Duration(minutes: 5),
+    this.now = DateTime.now,
   });
 
   final AuthRepository auth;
   final DevicePrefs prefs;
   final BiometricLock biometrics;
+
+  /// With quick unlock on, the app locks after this long in the background.
+  final Duration lockAfter;
+  final DateTime Function() now;
 
   @override
   State<SignInFlow> createState() => _SignInFlowState();
@@ -68,11 +74,37 @@ class _SignInFlowState extends State<SignInFlow> {
   Session? _session;
   String? _lastEmail;
   BiometricKind? _kind;
+  bool _unlockOn = false;
+
+  /// Locked on top of the app, so work in progress survives the lock.
+  bool _locked = false;
+  DateTime? _backgroundedAt;
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
+    _lifecycle = AppLifecycleListener(
+      onHide: () => _backgroundedAt ??= widget.now(),
+      onShow: _returnedToForeground,
+    );
     _start();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  void _returnedToForeground() {
+    final since = _backgroundedAt;
+    _backgroundedAt = null;
+    if (since == null || _step != _Step.signedIn || _locked) return;
+    if (!_unlockOn || _kind == null) return;
+    if (widget.now().difference(since) >= widget.lockAfter) {
+      setState(() => _locked = true);
+    }
   }
 
   Future<void> _start() async {
@@ -86,6 +118,7 @@ class _SignInFlowState extends State<SignInFlow> {
     final unlockOn = results[2] as bool;
     _lastEmail = results[1] as String?;
     _kind = results[3] as BiometricKind?;
+    _unlockOn = unlockOn;
     if (!mounted) return;
     setState(() {
       _session = session;
@@ -112,6 +145,7 @@ class _SignInFlowState extends State<SignInFlow> {
   Future<void> _offerDone(bool enabled) async {
     await widget.prefs.setBiometricUnlock(enabled);
     await widget.prefs.setBiometricOffered();
+    _unlockOn = enabled;
     if (mounted) setState(() => _step = _Step.signedIn);
   }
 
@@ -138,7 +172,29 @@ class _SignInFlowState extends State<SignInFlow> {
         kind: _kind!,
         onDone: _offerDone,
       ),
-      _Step.signedIn => const HomeShell(),
+      _Step.signedIn => Stack(
+        children: [
+          TickerMode(
+            enabled: !_locked,
+            child: ExcludeSemantics(
+              excluding: _locked,
+              child: const HomeShell(),
+            ),
+          ),
+          if (_locked)
+            UnlockScreen(
+              key: const Key('lock-screen'),
+              lock: widget.biometrics,
+              kind: _kind!,
+              user: _session!.user,
+              onUnlocked: () => setState(() => _locked = false),
+              onUsePassword: () => setState(() {
+                _locked = false;
+                _step = _Step.signIn;
+              }),
+            ),
+        ],
+      ),
     };
   }
 }

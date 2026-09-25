@@ -1,12 +1,18 @@
-/// Build-time configuration, passed with `--dart-define`.
+import 'package:flutter/foundation.dart';
+
+/// Which Daystar site the app talks to.
 ///
-///   flutter run --dart-define=SITE_URL=https://staging.example.com
+/// Development and profile builds use staging; release builds use the live
+/// site. Override either with `--dart-define=SITE_URL=https://...` (for
+/// example a local bench).
 class Env {
-  /// The Daystar ERPNext site. Override for staging or a local bench.
-  static const siteUrl = String.fromEnvironment(
-    'SITE_URL',
-    defaultValue: 'https://crm.thedaystar.co.za',
-  );
+  static const liveUrl = 'https://crm.thedaystar.co.za';
+  static const stagingUrl = 'https://crm-staging.thedaystar.co.za';
+
+  static const _override = String.fromEnvironment('SITE_URL');
+
+  static String get siteUrl =>
+      _override.isNotEmpty ? _override : (kReleaseMode ? liveUrl : stagingUrl);
 
   /// Must match `package_name` on the site's Mobile Configuration.
   static const packageName = 'za.co.thedaystar.daystar_sales';
