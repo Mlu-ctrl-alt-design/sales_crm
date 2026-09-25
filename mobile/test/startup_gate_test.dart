@@ -56,6 +56,22 @@ void main() {
     expect(find.text('Sign in'), findsNothing);
   });
 
+  testWidgets('maintenance Try again re-checks and opens once it is over',
+      (tester) async {
+    var maintenance = true;
+    await pumpApp(
+      tester,
+      () async => AppStatus(enabled: true, maintenanceMode: maintenance),
+    );
+    expect(find.byKey(const Key('gate-maintenance')), findsOneWidget);
+
+    maintenance = false;
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+  });
+
   testWidgets('disabled config blocks the app', (tester) async {
     await pumpApp(
       tester,
@@ -81,7 +97,7 @@ void main() {
   testWidgets('unreachable server offers retry, not the app', (tester) async {
     await pumpApp(tester, () async => throw AppStatusException('offline'));
     expect(find.byKey(const Key('gate-error')), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
   });
 
@@ -94,5 +110,25 @@ void main() {
     for (final label in ['Dashboard', 'Assistant', 'Quick send']) {
       expect(find.widgetWithText(NavigationDestination, label), findsOneWidget);
     }
+  });
+
+  testWidgets('+ opens quick create; New quote lands on Quick send',
+      (tester) async {
+    await pumpApp(
+      tester,
+      () async => const AppStatus(enabled: true, maintenanceMode: false),
+    );
+
+    await tester.tap(find.byKey(const Key('quick-create')));
+    await tester.pumpAndSettle();
+    expect(find.text('New invoice'), findsOneWidget);
+    expect(find.text('New customer'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('create-quote')));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(AppBar, 'Quick send'), findsOneWidget);
+    // Already on the create flow, so the + button steps aside.
+    expect(find.byKey(const Key('quick-create')), findsNothing);
   });
 }

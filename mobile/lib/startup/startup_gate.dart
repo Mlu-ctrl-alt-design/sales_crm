@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/daystar_theme.dart';
 import 'app_status.dart';
 import 'app_status_service.dart';
 
@@ -26,7 +27,12 @@ class StartupGate extends StatefulWidget {
 class _StartupGateState extends State<StartupGate> {
   late Future<AppStatus> _status = widget.statusService.fetch();
 
-  void _retry() => setState(() => _status = widget.statusService.fetch());
+  void _retry() {
+    final status = widget.statusService.fetch();
+    setState(() {
+      _status = status;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +49,9 @@ class _StartupGateState extends State<StartupGate> {
             key: const Key('gate-error'),
             icon: Icons.cloud_off_outlined,
             title: "Can't reach Daystar",
-            message: 'Check your connection and try again.',
-            action: FilledButton(onPressed: _retry, child: const Text('Retry')),
+            message: 'Check your signal or Wi-Fi, then try again.',
+            actionLabel: 'Try again',
+            onAction: _retry,
           );
         }
         final status = snapshot.requireData;
@@ -54,9 +61,10 @@ class _StartupGateState extends State<StartupGate> {
           case AppGate.disabled:
             return const BlockingScreen(
               key: Key('gate-disabled'),
-              icon: Icons.block_outlined,
-              title: 'App unavailable',
-              message: 'The Daystar mobile app is currently switched off.',
+              icon: Icons.lock_clock_outlined,
+              title: 'The app is switched off',
+              message: 'Daystar Sales is not available right now. '
+                  'Ask Mlu if you need access.',
             );
           case AppGate.maintenance:
             return BlockingScreen(
@@ -64,15 +72,18 @@ class _StartupGateState extends State<StartupGate> {
               icon: Icons.construction_outlined,
               title: 'Down for maintenance',
               message: status.maintenanceMessage ??
-                  "We're doing some maintenance. Please check back soon.",
+                  "We're making some changes. Check back soon.",
+              actionLabel: 'Try again',
+              onAction: _retry,
             );
           case AppGate.updateRequired:
             return BlockingScreen(
               key: const Key('gate-update'),
               icon: Icons.system_update_outlined,
               title: 'Update required',
-              message: 'Version ${status.minimumAppVersion} or later is '
-                  'required. You have ${widget.installedVersion}.',
+              message: 'This version (${widget.installedVersion}) is no '
+                  'longer supported. Update to '
+                  '${status.minimumAppVersion} or later to continue.',
             );
         }
       },
@@ -80,41 +91,54 @@ class _StartupGateState extends State<StartupGate> {
   }
 }
 
+/// Icon, heading, one sentence, at most one button. Used for every state
+/// that takes over the whole app.
 class BlockingScreen extends StatelessWidget {
   const BlockingScreen({
     super.key,
     required this.icon,
     required this.title,
     required this.message,
-    this.action,
+    this.actionLabel,
+    this.onAction,
   });
 
   final IconData icon;
   final String title;
   final String message;
-  final Widget? action;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final text = Theme.of(context).textTheme;
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 56, color: theme.colorScheme.primary),
-                const SizedBox(height: 24),
-                Text(title,
-                    style: theme.textTheme.titleLarge,
-                    textAlign: TextAlign.center),
-                const SizedBox(height: 12),
-                Text(message, textAlign: TextAlign.center),
-                if (action != null) ...[const SizedBox(height: 24), action!],
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: DaystarColors.brandSoft,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(icon, size: 30, color: DaystarColors.brand),
+              ),
+              const SizedBox(height: 24),
+              Text(title,
+                  style: text.headlineSmall, textAlign: TextAlign.center),
+              const SizedBox(height: 10),
+              Text(message,
+                  style: text.bodyLarge?.copyWith(color: DaystarColors.muted),
+                  textAlign: TextAlign.center),
+              const Spacer(flex: 4),
+              if (actionLabel != null)
+                FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
           ),
         ),
       ),

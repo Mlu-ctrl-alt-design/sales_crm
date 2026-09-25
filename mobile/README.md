@@ -4,7 +4,8 @@ Mobile client for the Daystar ERPNext site. See `../docs/SPEC.md`.
 
 ```sh
 flutter pub get
-flutter run --dart-define=SITE_URL=https://<staging-site>
+flutter run                                           # uses https://crm.thedaystar.co.za
+flutter run --dart-define=SITE_URL=https://<staging>  # staging or a local bench
 flutter test
 ```
 

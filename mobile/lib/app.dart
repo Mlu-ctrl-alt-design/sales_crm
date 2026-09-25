@@ -5,6 +5,7 @@ import 'auth/login_screen.dart';
 import 'shell/home_shell.dart';
 import 'startup/app_status_service.dart';
 import 'startup/startup_gate.dart';
+import 'theme/daystar_theme.dart';
 
 class DaystarApp extends StatelessWidget {
   const DaystarApp({
@@ -22,7 +23,8 @@ class DaystarApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Daystar Sales',
-      theme: ThemeData(colorSchemeSeed: const Color(0xFF1F4E79)),
+      debugShowCheckedModeBanner: false,
+      theme: DaystarTheme.light(),
       home: StartupGate(
         statusService: statusService,
         installedVersion: installedVersion,
