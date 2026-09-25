@@ -5,10 +5,14 @@ app_description = "Backend for the Daystar Sales mobile app"
 app_email = "mlumanda@gmail.com"
 app_license = "mit"
 
+fixtures = [
+	{"dt": "Role", "filters": [["name", "=", "Mobile Sales Rep"]]},
+]
+
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["erpnext"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
