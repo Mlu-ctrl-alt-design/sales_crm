@@ -5,42 +5,29 @@ import 'package:daystar_sales/startup/app_status_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-class _FakeStatusService implements AppStatusService {
-  _FakeStatusService(this.result);
-  final Future<AppStatus> Function() result;
-
-  @override
-  Future<AppStatus> fetch() => result();
-}
-
-class _SignedInAuth implements AuthRepository {
-  @override
-  Future<Session?> restore() async => const Session(user: 'mlu@example.com');
-
-  @override
-  Future<Session> login({required String username, required String password}) =>
-      throw UnimplementedError();
-
-  @override
-  Future<void> logout() async {}
-}
+import 'support/fakes.dart';
 
 Future<void> pumpApp(
   WidgetTester tester,
   Future<AppStatus> Function() status, {
   String installedVersion = '1.0.0',
 }) async {
-  await tester.pumpWidget(DaystarApp(
-    statusService: _FakeStatusService(status),
-    auth: _SignedInAuth(),
-    installedVersion: installedVersion,
-  ));
+  await tester.pumpWidget(
+    DaystarApp(
+      statusService: FakeStatusService(status),
+      auth: FakeAuth(stored: const Session(user: 'mlu@example.com')),
+      prefs: MemoryPrefs(),
+      biometrics: FakeBiometrics(kind: null),
+      installedVersion: installedVersion,
+    ),
+  );
   await tester.pumpAndSettle();
 }
 
 void main() {
-  testWidgets('maintenance mode shows only the maintenance message',
-      (tester) async {
+  testWidgets('maintenance mode shows only the maintenance message', (
+    tester,
+  ) async {
     await pumpApp(
       tester,
       () async => const AppStatus(
@@ -56,8 +43,9 @@ void main() {
     expect(find.text('Sign in'), findsNothing);
   });
 
-  testWidgets('maintenance Try again re-checks and opens once it is over',
-      (tester) async {
+  testWidgets('maintenance Try again re-checks and opens once it is over', (
+    tester,
+  ) async {
     var maintenance = true;
     await pumpApp(
       tester,
@@ -112,8 +100,9 @@ void main() {
     }
   });
 
-  testWidgets('+ opens quick create; New quote lands on Quick send',
-      (tester) async {
+  testWidgets('+ opens quick create; New quote lands on Quick send', (
+    tester,
+  ) async {
     await pumpApp(
       tester,
       () async => const AppStatus(enabled: true, maintenanceMode: false),

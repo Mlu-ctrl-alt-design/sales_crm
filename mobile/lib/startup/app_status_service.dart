@@ -13,7 +13,7 @@ abstract class AppStatusService {
 /// The endpoint is guest-accessible so the gate runs before login.
 class HttpAppStatusService implements AppStatusService {
   HttpAppStatusService({required this.siteUrl, http.Client? client})
-      : _client = client ?? http.Client();
+    : _client = client ?? http.Client();
 
   final String siteUrl;
   final http.Client _client;

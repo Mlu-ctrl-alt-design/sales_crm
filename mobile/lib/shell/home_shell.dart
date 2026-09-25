@@ -47,10 +47,14 @@ class _HomeShellState extends State<HomeShell> {
       case QuickCreate.invoice:
         _select(HeroTab.quickSend);
       case QuickCreate.customer:
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('New customers open in the standard form. '
-              'Coming in a later build.'),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'New customers open in the standard form. '
+              'Coming in a later build.',
+            ),
+          ),
+        );
     }
   }
 
@@ -121,12 +125,24 @@ class QuickCreateSheet extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            option(QuickCreate.quote, Icons.request_quote_outlined,
-                'New quote', 'Priced from the price list'),
-            option(QuickCreate.invoice, Icons.receipt_long_outlined,
-                'New invoice', 'Submit and send in one go'),
-            option(QuickCreate.customer, Icons.person_add_alt_outlined,
-                'New customer', 'Add someone to quote'),
+            option(
+              QuickCreate.quote,
+              Icons.request_quote_outlined,
+              'New quote',
+              'Priced from the price list',
+            ),
+            option(
+              QuickCreate.invoice,
+              Icons.receipt_long_outlined,
+              'New invoice',
+              'Submit and send in one go',
+            ),
+            option(
+              QuickCreate.customer,
+              Icons.person_add_alt_outlined,
+              'New customer',
+              'Add someone to quote',
+            ),
           ],
         ),
       ),
@@ -144,19 +160,19 @@ class _PlaceholderTab extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final (title, body) = switch (tab) {
       HeroTab.dashboard => (
-          'Sales health, at a glance',
-          'Invoiced profit, money in and out, receivables and your pipeline '
-              'will show here.',
-        ),
+        'Sales health, at a glance',
+        'Invoiced profit, money in and out, receivables and your pipeline '
+            'will show here.',
+      ),
       HeroTab.assistant => (
-          'Ask about the business',
-          'Questions are answered from ERPNext. Anything that changes a '
-              'record waits for your tap.',
-        ),
+        'Ask about the business',
+        'Questions are answered from ERPNext. Anything that changes a '
+            'record waits for your tap.',
+      ),
       HeroTab.quickSend => (
-          'Quote or invoice in under 90 seconds',
-          'Pick a customer, add items from the price list, review and send.',
-        ),
+        'Quote or invoice in under 90 seconds',
+        'Pick a customer, add items from the price list, review and send.',
+      ),
     };
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
@@ -165,8 +181,10 @@ class _PlaceholderTab extends StatelessWidget {
         const SizedBox(height: 8),
         Text(body, style: text.bodyLarge?.copyWith(color: DaystarColors.muted)),
         const SizedBox(height: 12),
-        Text('Coming soon', style: text.labelMedium?.copyWith(
-            color: DaystarColors.brand)),
+        Text(
+          'Coming soon',
+          style: text.labelMedium?.copyWith(color: DaystarColors.brand),
+        ),
       ],
     );
   }

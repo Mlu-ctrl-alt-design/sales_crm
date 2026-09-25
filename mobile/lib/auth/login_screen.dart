@@ -54,8 +54,11 @@ class _LoginScreenState extends State<LoginScreen> {
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
-      setState(() => _error = "Couldn't reach Daystar. Check your signal "
-          'and try again.');
+      setState(
+        () => _error =
+            "Couldn't reach Daystar. Check your signal "
+            'and try again.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -79,9 +82,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 28),
                   Text('Sign in to Daystar', style: text.headlineSmall),
                   const SizedBox(height: 6),
-                  Text('Use your Daystar ERPNext login.',
-                      style: text.bodyMedium
-                          ?.copyWith(color: DaystarColors.muted)),
+                  Text(
+                    'Use your Daystar ERPNext login.',
+                    style: text.bodyMedium?.copyWith(
+                      color: DaystarColors.muted,
+                    ),
+                  ),
                   const SizedBox(height: 28),
                   TextField(
                     key: const Key('login-email'),
@@ -99,10 +105,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: IconButton(
-                        tooltip: _showPassword ? 'Hide password' : 'Show password',
-                        icon: Icon(_showPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined),
+                        tooltip: _showPassword
+                            ? 'Hide password'
+                            : 'Show password',
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                         onPressed: () =>
                             setState(() => _showPassword = !_showPassword),
                       ),
@@ -114,9 +124,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 14),
-                    Text(_error!,
-                        style: text.bodyMedium
-                            ?.copyWith(color: DaystarColors.moneyOut)),
+                    Text(
+                      _error!,
+                      style: text.bodyMedium?.copyWith(
+                        color: DaystarColors.moneyOut,
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -129,7 +142,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const SizedBox.square(
                         dimension: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text('Sign in'),
               ),
             ),

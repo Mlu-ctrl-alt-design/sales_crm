@@ -63,7 +63,8 @@ class _StartupGateState extends State<StartupGate> {
               key: Key('gate-disabled'),
               icon: Icons.lock_clock_outlined,
               title: 'The app is switched off',
-              message: 'Daystar Sales is not available right now. '
+              message:
+                  'Daystar Sales is not available right now. '
                   'Ask Mlu if you need access.',
             );
           case AppGate.maintenance:
@@ -71,7 +72,8 @@ class _StartupGateState extends State<StartupGate> {
               key: const Key('gate-maintenance'),
               icon: Icons.construction_outlined,
               title: 'Down for maintenance',
-              message: status.maintenanceMessage ??
+              message:
+                  status.maintenanceMessage ??
                   "We're making some changes. Check back soon.",
               actionLabel: 'Try again',
               onAction: _retry,
@@ -81,7 +83,8 @@ class _StartupGateState extends State<StartupGate> {
               key: const Key('gate-update'),
               icon: Icons.system_update_outlined,
               title: 'Update required',
-              message: 'This version (${widget.installedVersion}) is no '
+              message:
+                  'This version (${widget.installedVersion}) is no '
                   'longer supported. Update to '
                   '${status.minimumAppVersion} or later to continue.',
             );
@@ -129,12 +132,17 @@ class BlockingScreen extends StatelessWidget {
                 child: Icon(icon, size: 30, color: DaystarColors.brand),
               ),
               const SizedBox(height: 24),
-              Text(title,
-                  style: text.headlineSmall, textAlign: TextAlign.center),
+              Text(
+                title,
+                style: text.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 10),
-              Text(message,
-                  style: text.bodyLarge?.copyWith(color: DaystarColors.muted),
-                  textAlign: TextAlign.center),
+              Text(
+                message,
+                style: text.bodyLarge?.copyWith(color: DaystarColors.muted),
+                textAlign: TextAlign.center,
+              ),
               const Spacer(flex: 4),
               if (actionLabel != null)
                 FilledButton(onPressed: onAction, child: Text(actionLabel!)),

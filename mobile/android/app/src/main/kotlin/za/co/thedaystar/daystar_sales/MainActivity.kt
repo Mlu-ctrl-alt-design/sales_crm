@@ -1,5 +1,6 @@
 package za.co.thedaystar.daystar_sales
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// local_auth (Face ID / fingerprint unlock) needs a FragmentActivity.
+class MainActivity : FlutterFragmentActivity()

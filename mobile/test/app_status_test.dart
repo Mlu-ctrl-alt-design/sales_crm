@@ -6,12 +6,11 @@ void main() {
     bool enabled = true,
     bool maintenance = false,
     String? minimum,
-  }) =>
-      AppStatus(
-        enabled: enabled,
-        maintenanceMode: maintenance,
-        minimumAppVersion: minimum,
-      );
+  }) => AppStatus(
+    enabled: enabled,
+    maintenanceMode: maintenance,
+    minimumAppVersion: minimum,
+  );
 
   test('parses Frappe check fields sent as 0/1', () {
     final s = AppStatus.fromJson({
@@ -33,8 +32,11 @@ void main() {
 
   test('disabled wins over everything', () {
     expect(
-      status(enabled: false, maintenance: true, minimum: '9.0.0')
-          .evaluate('1.0.0'),
+      status(
+        enabled: false,
+        maintenance: true,
+        minimum: '9.0.0',
+      ).evaluate('1.0.0'),
       AppGate.disabled,
     );
   });

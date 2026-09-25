@@ -18,11 +18,11 @@ class AppStatus {
   final String? minimumAppVersion;
 
   factory AppStatus.fromJson(Map<String, dynamic> json) => AppStatus(
-        enabled: _truthy(json['enabled']),
-        maintenanceMode: _truthy(json['maintenance_mode']),
-        maintenanceMessage: _blankToNull(json['maintenance_message']),
-        minimumAppVersion: _blankToNull(json['minimum_app_version']),
-      );
+    enabled: _truthy(json['enabled']),
+    maintenanceMode: _truthy(json['maintenance_mode']),
+    maintenanceMessage: _blankToNull(json['maintenance_message']),
+    minimumAppVersion: _blankToNull(json['minimum_app_version']),
+  );
 
   /// Disabled wins over maintenance, and maintenance over an outdated build,
   /// so the user always sees the most fundamental reason first.

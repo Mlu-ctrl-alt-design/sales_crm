@@ -17,8 +17,11 @@ class DaystarMark extends StatelessWidget {
         color: DaystarColors.brand,
         borderRadius: BorderRadius.circular(size * 0.3),
       ),
-      child: Icon(Icons.wb_sunny_outlined,
-          color: DaystarColors.marigold, size: size * 0.5),
+      child: Icon(
+        Icons.wb_sunny_outlined,
+        color: DaystarColors.marigold,
+        size: size * 0.5,
+      ),
     );
   }
 }

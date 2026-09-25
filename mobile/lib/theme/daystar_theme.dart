@@ -48,24 +48,32 @@ class DaystarTheme {
     );
 
     const tabular = [FontFeature.tabularFigures()];
-    final text = const TextTheme(
-      displaySmall: TextStyle(
-          fontSize: 34, fontWeight: FontWeight.w700, letterSpacing: -0.6,
-          height: 1.05, fontFeatures: tabular),
-      headlineSmall: TextStyle(
-          fontSize: 24, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-      titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-      bodyLarge: TextStyle(fontSize: 16, height: 1.45),
-      bodyMedium: TextStyle(fontSize: 14, height: 1.45),
-      labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-      bodySmall: TextStyle(fontSize: 12, color: DaystarColors.muted),
-    ).apply(
-      fontFamily: fontFamily,
-      bodyColor: DaystarColors.ink,
-      displayColor: DaystarColors.ink,
-    );
+    final text =
+        const TextTheme(
+          displaySmall: TextStyle(
+            fontSize: 34,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.6,
+            height: 1.05,
+            fontFeatures: tabular,
+          ),
+          headlineSmall: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+          ),
+          titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+          titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          bodyLarge: TextStyle(fontSize: 16, height: 1.45),
+          bodyMedium: TextStyle(fontSize: 14, height: 1.45),
+          labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          bodySmall: TextStyle(fontSize: 12, color: DaystarColors.muted),
+        ).apply(
+          fontFamily: fontFamily,
+          bodyColor: DaystarColors.ink,
+          displayColor: DaystarColors.ink,
+        );
 
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(DaystarRadius.button),
@@ -105,8 +113,10 @@ class DaystarTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: false,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
         labelStyle: text.bodyMedium?.copyWith(color: DaystarColors.muted),
         border: _fieldBorder(DaystarColors.line),
         enabledBorder: _fieldBorder(DaystarColors.line),
@@ -150,7 +160,8 @@ class DaystarTheme {
         showDragHandle: true,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-              top: Radius.circular(DaystarRadius.card)),
+            top: Radius.circular(DaystarRadius.card),
+          ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
