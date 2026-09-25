@@ -32,3 +32,6 @@ package-lock.json
 *.njsproj
 *.sln
 *.sw?
+
+# Local Redis snapshots from a dev bench
+dump.rdb
