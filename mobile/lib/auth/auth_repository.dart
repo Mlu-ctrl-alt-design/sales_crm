@@ -1,16 +1,15 @@
 /// A signed-in user.
 class Session {
-  const Session({required this.user});
+  const Session({required this.user, this.fullName});
+
+  /// The Frappe user id (usually the email).
   final String user;
+  final String? fullName;
 }
 
-/// Token auth against Mobile Control's Mobile Refresh Token.
-///
-/// The concrete implementation is intentionally missing: Mobile Control's
-/// login/refresh endpoints and payloads have not been inspected yet, and the
-/// contract must come from its source, not be guessed.
+/// Sign-in against the Daystar site.
 abstract class AuthRepository {
-  /// The stored session, if its tokens are still usable.
+  /// The session stored on this device, if it can still be used.
   Future<Session?> restore();
 
   Future<Session> login({required String username, required String password});
@@ -18,27 +17,11 @@ abstract class AuthRepository {
   Future<void> logout();
 }
 
+/// A sign-in problem the user can act on; [message] is shown as-is.
 class AuthException implements Exception {
   AuthException(this.message);
   final String message;
 
   @override
   String toString() => message;
-}
-
-/// Placeholder until the Mobile Control token contract is known.
-class PendingMobileControlAuthRepository implements AuthRepository {
-  @override
-  Future<Session?> restore() async => null;
-
-  @override
-  Future<Session> login({required String username, required String password}) {
-    throw AuthException(
-      'Sign-in is not available yet: the Mobile Control token contract '
-      'has not been wired up.',
-    );
-  }
-
-  @override
-  Future<void> logout() async {}
 }

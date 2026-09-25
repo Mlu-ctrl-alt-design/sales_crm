@@ -17,5 +17,7 @@ a newer version than the installed build.
 With Face ID / fingerprint unlock on, the app locks after 5 minutes in the
 background and unlocks on top of where the user left off.
 
-Sign-in is stubbed (`PendingMobileControlAuthRepository`) until Mobile
-Control's token endpoints have been inspected.
+Sign-in uses Mobile Control's token API (`mobile_auth.login`,
+`mobile_auth.refresh_token`, `mobile_auth.logout`); see
+`lib/auth/mobile_control_auth.dart` for the contract. A user needs Mobile
+Control's **Mobile User** role to sign in on the app.
