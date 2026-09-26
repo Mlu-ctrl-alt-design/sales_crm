@@ -15,8 +15,8 @@ package-lock.json
 
 # Expo
 .expo/
-android/
-ios/
+/android/
+/ios/
 
 # Environment variables (contains secrets)
 .env
@@ -32,3 +32,6 @@ ios/
 *.njsproj
 *.sln
 *.sw?
+
+# Local Redis snapshots from a dev bench
+dump.rdb
