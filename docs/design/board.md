@@ -1,16 +1,21 @@
 # Design direction
 
-Chosen Sep 25, 2026: **Direction A "Ledger"**, plus the **+ quick-create button from Direction C**.
-Board: https://claude.ai/artifact/8HgqmJTUSHmKtKFeinDANu (private to Mlu).
+**Brand: Daystar Editorial** (Sep 27, 2026), the theme the Daystar site already wears on Desk
+(`daystar_editorial` website theme and `/assets/daystar/` on crm-staging). It replaces the
+"Ledger" colours and type chosen on Sep 25; the layout decisions below, including the +
+quick-create button from Direction C, still stand.
+Original board: https://claude.ai/artifact/8HgqmJTUSHmKtKFeinDANu (private to Mlu).
 
 Tokens live in `mobile/lib/theme/daystar_theme.dart`.
 
 ## Look
 
-- Calm white surfaces; typography carries the hierarchy (Manrope, bundled in `mobile/assets/fonts`).
-- One brand blue `#1F4E79` for actions. Green `#16794A` and red `#B3372F` only for money in and out.
-- Marigold `#F2A516` only on the + quick-create button (New quote / New invoice / New customer). It hides on Quick send.
-- Radius: fields 10, buttons 12, cards and sheets 16. Buttons 52 high, full width at the bottom of a flow.
+- Warm paper `#FAF7F2` surfaces, `#F2EDE4` for tiles and selected rows; navy `#1A2332` for text, the app bar and outlines.
+- Orange `#FF5A1F` with navy text for the primary action and the + button; orange underline on the focused field.
+- Green `#2F6B3A` and red `#B3372F` only for money in and out.
+- Type: Fraunces (serif, 800) for titles and money; Inter Tight for body and controls; JetBrains Mono, small and uppercase, for labels, ids and dates. All three bundled in `mobile/assets/fonts` (OFL).
+- Square corners everywhere; fields are a single underline. Buttons 52 high, full width at the bottom of a flow.
+- Logo: the green "D" mark from `/assets/daystar/logo@2x.png` (395 px, the largest the site has). A vector version would sharpen the 1024 px app icon.
 
 ## Principles
 

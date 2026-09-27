@@ -1,27 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../theme/daystar_theme.dart';
-
-/// Placeholder brand mark until the Daystar logo is supplied.
+/// The Daystar "D" mark, as on the site's login page.
+///
+/// The site only publishes it as a 395 px PNG (`/assets/daystar/logo@2x.png`),
+/// so it's sized by width and kept small.
 class DaystarMark extends StatelessWidget {
   const DaystarMark({super.key, this.size = 52});
 
+  /// Width in logical pixels; the height follows the mark's proportions.
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Image.asset(
+      'assets/brand/daystar_mark.png',
       width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: DaystarColors.brand,
-        borderRadius: BorderRadius.circular(size * 0.3),
-      ),
-      child: Icon(
-        Icons.wb_sunny_outlined,
-        color: DaystarColors.marigold,
-        size: size * 0.5,
-      ),
+      semanticLabel: 'Daystar',
+      filterQuality: FilterQuality.medium,
     );
   }
 }

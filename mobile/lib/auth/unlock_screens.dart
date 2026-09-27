@@ -152,10 +152,7 @@ class _OfferBiometricScreenState extends State<OfferBiometricScreen> {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(
-                  color: DaystarColors.brandSoft,
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                color: DaystarColors.subtle,
                 child: Icon(icon, size: 32, color: DaystarColors.brand),
               ),
               const SizedBox(height: 24),

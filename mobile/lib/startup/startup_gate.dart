@@ -125,10 +125,7 @@ class BlockingScreen extends StatelessWidget {
               Container(
                 width: 64,
                 height: 64,
-                decoration: BoxDecoration(
-                  color: DaystarColors.brandSoft,
-                  borderRadius: BorderRadius.circular(18),
-                ),
+                color: DaystarColors.subtle,
                 child: Icon(icon, size: 30, color: DaystarColors.brand),
               ),
               const SizedBox(height: 24),

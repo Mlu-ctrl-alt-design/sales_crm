@@ -80,6 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: DaystarMark(),
                   ),
                   const SizedBox(height: 28),
+                  const Eyebrow('Daystar Sales'),
+                  const SizedBox(height: 8),
                   Text('Sign in to Daystar', style: text.headlineSmall),
                   const SizedBox(height: 6),
                   Text(
@@ -143,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         dimension: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: DaystarColors.onAccent,
                         ),
                       )
                     : const Text('Sign in'),

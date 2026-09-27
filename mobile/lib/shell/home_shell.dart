@@ -74,7 +74,7 @@ class _HomeShellState extends State<HomeShell> {
             ),
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: DaystarColors.divider)),
+          border: Border(top: BorderSide(color: DaystarColors.ink)),
         ),
         child: NavigationBar(
           selectedIndex: _tab.index,
@@ -84,7 +84,7 @@ class _HomeShellState extends State<HomeShell> {
               NavigationDestination(
                 icon: Icon(_destinations[tab]!.icon),
                 selectedIcon: Icon(_destinations[tab]!.selected),
-                label: _destinations[tab]!.label,
+                label: _destinations[tab]!.label.toUpperCase(),
               ),
           ],
         ),
@@ -107,10 +107,7 @@ class QuickCreateSheet extends StatelessWidget {
         leading: Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(
-            color: DaystarColors.brandSoft,
-            borderRadius: BorderRadius.circular(DaystarRadius.field),
-          ),
+          color: DaystarColors.subtle,
           child: Icon(icon, color: DaystarColors.brand, size: 22),
         ),
         title: Text(title, style: Theme.of(context).textTheme.titleMedium),
@@ -181,10 +178,7 @@ class _PlaceholderTab extends StatelessWidget {
         const SizedBox(height: 8),
         Text(body, style: text.bodyLarge?.copyWith(color: DaystarColors.muted)),
         const SizedBox(height: 12),
-        Text(
-          'Coming soon',
-          style: text.labelMedium?.copyWith(color: DaystarColors.brand),
-        ),
+        const Eyebrow('Coming soon', color: DaystarColors.accentDeep),
       ],
     );
   }

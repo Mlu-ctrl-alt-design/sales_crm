@@ -95,7 +95,7 @@ void main() {
       () async => const AppStatus(enabled: true, maintenanceMode: false),
     );
     expect(find.byType(NavigationBar), findsOneWidget);
-    for (final label in ['Dashboard', 'Assistant', 'Quick send']) {
+    for (final label in ['DASHBOARD', 'ASSISTANT', 'QUICK SEND']) {
       expect(find.widgetWithText(NavigationDestination, label), findsOneWidget);
     }
   });

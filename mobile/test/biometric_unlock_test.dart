@@ -221,7 +221,7 @@ void lockTests() {
     expect(bio.prompts, 1);
 
     // Leave the app on Quick send, go away for 5 minutes.
-    await tester.tap(find.text('Quick send'));
+    await tester.tap(find.text('QUICK SEND'));
     await tester.pumpAndSettle();
     bio.succeeds = false;
     await background(tester);

@@ -1,42 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// Direction A "Ledger": calm, white, type-led. One brand blue for actions;
-/// green and red only for money in and out. See docs/design/board.md.
+/// "Daystar Editorial": the brand the Daystar site already wears on Desk
+/// (website theme `daystar_editorial` on crm-staging). Warm paper, navy ink,
+/// one orange for the primary action, square corners throughout.
+/// See docs/design/board.md.
 abstract final class DaystarColors {
-  static const ink = Color(0xFF131B24);
-  static const muted = Color(0xFF6B7682);
-  static const line = Color(0xFFDCE2E8);
-  static const divider = Color(0xFFEDF0F3);
-  static const surface = Color(0xFFFFFFFF);
-  static const subtle = Color(0xFFF4F6F8);
-  static const brand = Color(0xFF1F4E79);
-  static const brandSoft = Color(0xFFE3ECF5);
-  static const moneyIn = Color(0xFF16794A);
-  static const moneyOut = Color(0xFFB3372F);
+  /// Headings, body text, the app bar and outlines (`--ds-navy`).
+  static const ink = Color(0xFF1A2332);
 
-  /// Borrowed from direction C: the quick-create button only.
-  static const marigold = Color(0xFFF2A516);
-  static const onMarigold = Color(0xFF1E1A0E);
+  /// The deepest navy, for pressed and emphasised states (`--ds-ink`).
+  static const deepInk = Color(0xFF0B1220);
+  static const muted = Color(0xFF6B7280);
+
+  /// Hairlines: field underlines, list separators (`--ds-rule-soft`).
+  static const line = Color(0x1F1A2332);
+  static const divider = Color(0x1F1A2332);
+
+  /// Page background (`--ds-paper`).
+  static const surface = Color(0xFFFAF7F2);
+
+  /// Hover, selected rows, icon tiles (`--ds-paper-2`).
+  static const subtle = Color(0xFFF2EDE4);
+
+  /// Actions that aren't the primary one: text buttons, focus, selection.
+  static const brand = ink;
+  static const brandSoft = subtle;
+
+  /// The primary action, the + button and focus underlines (`--ds-orange`).
+  /// Text on it is navy, as on Desk.
+  static const accent = Color(0xFFFF5A1F);
+  static const accentDeep = Color(0xFFE84A12);
+  static const onAccent = ink;
+
+  /// Money in and out only.
+  static const moneyIn = Color(0xFF2F6B3A);
+  static const moneyOut = Color(0xFFB3372F);
 }
 
-abstract final class DaystarRadius {
-  static const field = 10.0;
-  static const button = 12.0;
-  static const card = 16.0;
+abstract final class DaystarFonts {
+  /// Titles and money (Fraunces, `--ds-serif`).
+  static const serif = 'Fraunces';
+
+  /// Body and controls (Inter Tight, `--ds-sans`).
+  static const sans = 'InterTight';
+
+  /// Small uppercase labels, ids and dates (JetBrains Mono, `--ds-mono`).
+  static const mono = 'JetBrainsMono';
 }
 
 class DaystarTheme {
-  static const fontFamily = 'Manrope';
-
   static ThemeData light() {
     const scheme = ColorScheme(
       brightness: Brightness.light,
-      primary: DaystarColors.brand,
-      onPrimary: Colors.white,
-      primaryContainer: DaystarColors.brandSoft,
-      onPrimaryContainer: DaystarColors.brand,
-      secondary: DaystarColors.marigold,
-      onSecondary: DaystarColors.onMarigold,
+      primary: DaystarColors.ink,
+      onPrimary: DaystarColors.surface,
+      primaryContainer: DaystarColors.subtle,
+      onPrimaryContainer: DaystarColors.ink,
+      secondary: DaystarColors.accent,
+      onSecondary: DaystarColors.onAccent,
       error: DaystarColors.moneyOut,
       onError: Colors.white,
       surface: DaystarColors.surface,
@@ -45,139 +67,225 @@ class DaystarTheme {
       outline: DaystarColors.line,
       outlineVariant: DaystarColors.divider,
       surfaceContainerHighest: DaystarColors.subtle,
+      surfaceContainerHigh: DaystarColors.subtle,
+      surfaceContainer: DaystarColors.surface,
+      surfaceContainerLow: DaystarColors.surface,
     );
 
     const tabular = [FontFeature.tabularFigures()];
+    const serif = TextStyle(
+      fontFamily: DaystarFonts.serif,
+      fontWeight: FontWeight.w800,
+      color: DaystarColors.ink,
+    );
     final text =
-        const TextTheme(
-          displaySmall: TextStyle(
-            fontSize: 34,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.6,
+        TextTheme(
+          displaySmall: serif.copyWith(
+            fontSize: 36,
+            letterSpacing: -0.7,
             height: 1.05,
             fontFeatures: tabular,
           ),
-          headlineSmall: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.3,
+          headlineSmall: serif.copyWith(fontSize: 28, letterSpacing: -0.55),
+          titleLarge: serif.copyWith(fontSize: 22, letterSpacing: -0.4),
+          titleMedium: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
-          titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          bodyLarge: TextStyle(fontSize: 16, height: 1.45),
-          bodyMedium: TextStyle(fontSize: 14, height: 1.45),
-          labelLarge: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-          labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          bodySmall: TextStyle(fontSize: 12, color: DaystarColors.muted),
+          bodyLarge: const TextStyle(fontSize: 16, height: 1.45),
+          bodyMedium: const TextStyle(fontSize: 14, height: 1.45),
+          bodySmall: const TextStyle(fontSize: 12, color: DaystarColors.muted),
+          labelLarge: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.6,
+          ),
+          labelMedium: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+          // Eyebrows and field labels; pass the text through [eyebrow].
+          labelSmall: const TextStyle(
+            fontFamily: DaystarFonts.mono,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1.6,
+            color: DaystarColors.muted,
+          ),
         ).apply(
-          fontFamily: fontFamily,
+          fontFamily: DaystarFonts.sans,
           bodyColor: DaystarColors.ink,
           displayColor: DaystarColors.ink,
         );
-
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(DaystarRadius.button),
+    // `apply` overrides every family; put the serif and mono ones back.
+    final themed = text.copyWith(
+      displaySmall: text.displaySmall?.copyWith(fontFamily: DaystarFonts.serif),
+      headlineSmall: text.headlineSmall?.copyWith(
+        fontFamily: DaystarFonts.serif,
+      ),
+      titleLarge: text.titleLarge?.copyWith(fontFamily: DaystarFonts.serif),
+      labelSmall: text.labelSmall?.copyWith(
+        fontFamily: DaystarFonts.mono,
+        color: DaystarColors.muted,
+      ),
     );
+
+    const square = RoundedRectangleBorder();
     const buttonSize = Size.fromHeight(52);
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      fontFamily: fontFamily,
-      textTheme: text,
+      fontFamily: DaystarFonts.sans,
+      textTheme: themed,
       scaffoldBackgroundColor: DaystarColors.surface,
+      canvasColor: DaystarColors.surface,
       dividerColor: DaystarColors.divider,
+      dividerTheme: const DividerThemeData(
+        color: DaystarColors.divider,
+        thickness: 1,
+        space: 1,
+      ),
       appBarTheme: AppBarTheme(
-        backgroundColor: DaystarColors.surface,
-        foregroundColor: DaystarColors.ink,
+        backgroundColor: DaystarColors.ink,
+        foregroundColor: DaystarColors.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: text.titleLarge,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: themed.titleLarge?.copyWith(
+          color: DaystarColors.surface,
+          fontSize: 21,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: DaystarColors.accent,
+          foregroundColor: DaystarColors.onAccent,
+          disabledBackgroundColor: DaystarColors.subtle,
+          disabledForegroundColor: DaystarColors.muted,
           minimumSize: buttonSize,
-          shape: shape,
-          textStyle: text.labelLarge,
+          shape: square,
+          textStyle: themed.labelLarge,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
+          foregroundColor: DaystarColors.ink,
           minimumSize: buttonSize,
-          shape: shape,
-          side: const BorderSide(color: DaystarColors.line),
-          textStyle: text.labelLarge,
+          shape: square,
+          side: const BorderSide(color: DaystarColors.ink),
+          textStyle: themed.labelLarge,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: DaystarColors.ink,
+          shape: square,
+          textStyle: themed.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: false,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 14,
+        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+        labelStyle: themed.bodyLarge?.copyWith(color: DaystarColors.muted),
+        floatingLabelStyle: themed.labelSmall?.copyWith(fontSize: 13),
+        border: const UnderlineInputBorder(
+          borderSide: BorderSide(color: DaystarColors.line),
         ),
-        labelStyle: text.bodyMedium?.copyWith(color: DaystarColors.muted),
-        border: _fieldBorder(DaystarColors.line),
-        enabledBorder: _fieldBorder(DaystarColors.line),
-        focusedBorder: _fieldBorder(DaystarColors.brand, width: 1.5),
-        errorBorder: _fieldBorder(DaystarColors.moneyOut),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: DaystarColors.line),
+        ),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: DaystarColors.accent, width: 1.5),
+        ),
+        errorBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: DaystarColors.moneyOut),
+        ),
+      ),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: DaystarColors.ink,
+        selectionHandleColor: DaystarColors.accent,
+        selectionColor: Color(0x40FF5A1F),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: DaystarColors.accent,
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: DaystarColors.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: DaystarColors.brandSoft,
+        indicatorColor: DaystarColors.ink,
+        indicatorShape: square,
         height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => text.labelMedium?.copyWith(
+          (states) => themed.labelSmall?.copyWith(
+            fontSize: 10,
+            letterSpacing: 1.2,
             color: states.contains(WidgetState.selected)
-                ? DaystarColors.brand
+                ? DaystarColors.ink
                 : DaystarColors.muted,
             fontWeight: states.contains(WidgetState.selected)
-                ? FontWeight.w700
-                : FontWeight.w600,
+                ? FontWeight.w600
+                : FontWeight.w500,
           ),
         ),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
-                ? DaystarColors.brand
+                ? DaystarColors.surface
                 : DaystarColors.muted,
           ),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: DaystarColors.marigold,
-        foregroundColor: DaystarColors.onMarigold,
-        elevation: 3,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(14)),
-        ),
+        backgroundColor: DaystarColors.accent,
+        foregroundColor: DaystarColors.onAccent,
+        elevation: 2,
+        shape: square,
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: DaystarColors.surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(DaystarRadius.card),
-          ),
-        ),
+        dragHandleColor: DaystarColors.line,
+        shape: Border(top: BorderSide(color: DaystarColors.ink)),
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: DaystarColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: Border.fromBorderSide(BorderSide(color: DaystarColors.ink)),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: DaystarColors.ink,
-        contentTextStyle: text.bodyMedium?.copyWith(color: Colors.white),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DaystarRadius.button),
+        contentTextStyle: themed.bodyMedium?.copyWith(
+          color: DaystarColors.surface,
         ),
+        actionTextColor: DaystarColors.accent,
+        shape: square,
+      ),
+      listTileTheme: const ListTileThemeData(
+        shape: square,
+        selectedTileColor: DaystarColors.subtle,
       ),
     );
   }
+}
 
-  static OutlineInputBorder _fieldBorder(Color color, {double width = 1}) =>
-      OutlineInputBorder(
-        borderRadius: BorderRadius.circular(DaystarRadius.field),
-        borderSide: BorderSide(color: color, width: width),
-      );
+/// Small uppercase mono label, as Desk uses for section heads and field
+/// labels.
+class Eyebrow extends StatelessWidget {
+  const Eyebrow(this.text, {super.key, this.color});
+
+  final String text;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+    );
+  }
 }
