@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Build a TestFlight .ipa on a Mac with Xcode. See docs/TESTFLIGHT.md.
 #
-#   ./scripts/build_testflight.sh                      # staging
-#   SITE_URL=https://crm.thedaystar.co.za ./scripts/build_testflight.sh   # live
+#   ./scripts/build_testflight.sh                      # live (crm.thedaystar.co.za)
+#   SITE_URL=https://crm-staging.thedaystar.co.za ./scripts/build_testflight.sh   # staging
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-SITE_URL="${SITE_URL:-https://crm-staging.thedaystar.co.za}"
+SITE_URL="${SITE_URL:-https://crm.thedaystar.co.za}"
 # Every upload needs a higher build number; a timestamp always increases.
 BUILD_NUMBER="${BUILD_NUMBER:-$(date -u +%Y%m%d%H%M)}"
 

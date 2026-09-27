@@ -8,7 +8,7 @@ on:
     inputs:
       site_url:
         description: Daystar site the build talks to
-        default: https://crm-staging.thedaystar.co.za
+        default: https://crm.thedaystar.co.za
         required: true
 
 concurrency:
