@@ -22,6 +22,10 @@ fixtures = [
 			]
 		],
 	},
+	{
+		"dt": "Custom Field",
+		"filters": [["name", "in", ["Quotation-daystar_mobile_key", "Sales Invoice-daystar_mobile_key"]]],
+	},
 ]
 
 after_install = "daystar_mobile.price_lock.setup_price_lock_permissions"
