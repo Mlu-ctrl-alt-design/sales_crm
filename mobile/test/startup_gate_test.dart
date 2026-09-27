@@ -19,6 +19,7 @@ Future<void> pumpApp(
       prefs: MemoryPrefs(),
       biometrics: FakeBiometrics(kind: null),
       installedVersion: installedVersion,
+      dashboard: FakeDashboardApi(),
       quickSend: FakeQuickSendApi(),
       drafts: MemoryStore(),
     ),

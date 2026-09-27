@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../auth/key_value_store.dart';
+import '../dashboard/dashboard_api.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../quick_send/draft.dart';
 import '../quick_send/models.dart';
 import '../quick_send/pdf_share.dart';
@@ -15,10 +17,13 @@ enum HeroTab { dashboard, assistant, quickSend }
 class HomeShell extends StatefulWidget {
   const HomeShell({
     super.key,
+    required this.dashboard,
     required this.quickSend,
     required this.drafts,
     this.sharePdf = shareViaSheet,
   });
+
+  final DashboardApi dashboard;
 
   final QuickSendApi quickSend;
 
@@ -107,6 +112,7 @@ class _HomeShellState extends State<HomeShell> {
                   draft: _draft!,
                   sharePdf: widget.sharePdf,
                 ),
+        HeroTab.dashboard => DashboardScreen(api: widget.dashboard),
         _ => _PlaceholderTab(tab: _tab),
       },
       floatingActionButton: _tab == HeroTab.quickSend

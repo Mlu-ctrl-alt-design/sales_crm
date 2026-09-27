@@ -6,6 +6,8 @@ import 'package:daystar_sales/auth/auth_repository.dart';
 import 'package:daystar_sales/auth/biometric_lock.dart';
 import 'package:daystar_sales/auth/device_prefs.dart';
 import 'package:daystar_sales/auth/key_value_store.dart';
+import 'package:daystar_sales/dashboard/dashboard_api.dart';
+import 'package:daystar_sales/dashboard/models.dart';
 import 'package:daystar_sales/quick_send/draft.dart';
 import 'package:daystar_sales/quick_send/models.dart';
 import 'package:daystar_sales/quick_send/quick_send_api.dart';
@@ -258,11 +260,77 @@ class FakeQuickSendApi implements QuickSendApi {
 
 /// The signed-in app with quick-send fakes.
 HomeShell testHome({
+  FakeDashboardApi? dashboard,
   FakeQuickSendApi? api,
   MemoryStore? drafts,
   List<String>? shared,
 }) => HomeShell(
+  dashboard: dashboard ?? FakeDashboardApi(),
   quickSend: api ?? FakeQuickSendApi(),
   drafts: drafts ?? MemoryStore(),
   sharePdf: (pdf, fileName, {origin}) async => shared?.add(fileName),
 );
+
+/// Shaped like `daystar_mobile.api.dashboard.get`, owner view by default.
+class FakeDashboardApi implements DashboardApi {
+  FakeDashboardApi({this.json, this.error});
+
+  Map<String, dynamic>? json;
+  ApiException? error;
+  final calls = <(DashboardPeriod, bool)>[];
+
+  @override
+  Future<DashboardData> get(
+    DashboardPeriod period, {
+    bool refresh = false,
+  }) async {
+    calls.add((period, refresh));
+    if (error != null) throw error!;
+    return DashboardData.fromJson(
+      json ?? ownerJson(),
+      DateTime(2026, 9, 27, 18, 52),
+    );
+  }
+}
+
+Map<String, dynamic> _period() => {
+  'key': 'this_month',
+  'from': '2026-09-01',
+  'to': '2026-09-27',
+  'previous_from': '2026-08-01',
+  'previous_to': '2026-08-27',
+};
+
+Map<String, dynamic> _pipeline() => {
+  'new_leads': {'value': 6, 'previous': 4},
+  'open_leads': 11,
+  'open_opportunities': {'count': 3, 'value': 84000},
+  'open_quotes': {'count': 5, 'value': 126500},
+};
+
+Map<String, dynamic> ownerJson() => {
+  'view': 'owner',
+  'company': 'Daystar',
+  'currency': 'ZAR',
+  'period': _period(),
+  'kpis': {
+    'profit': {'value': 48250, 'previous': 43000},
+    'sales': {'value': 186400, 'previous': 201000, 'count': 14},
+    'paid_out': {'value': 92150, 'previous': 88000},
+    'receivables': {'value': 138150, 'previous': 120000, 'overdue': 24600},
+  },
+  'pipeline': _pipeline(),
+};
+
+Map<String, dynamic> repJson({bool linked = true}) => {
+  'view': 'rep',
+  'company': 'Daystar',
+  'currency': 'ZAR',
+  'period': _period(),
+  'linked': linked,
+  'kpis': {
+    'my_sales': {'value': 32000, 'previous': 30000},
+    'my_outstanding': {'value': 12400, 'overdue': 0, 'count': 2},
+  },
+  'pipeline': _pipeline(),
+};

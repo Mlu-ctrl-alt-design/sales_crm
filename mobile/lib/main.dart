@@ -9,6 +9,7 @@ import 'auth/key_value_store.dart';
 import 'auth/mobile_control_auth.dart';
 import 'auth/token_store.dart';
 import 'config/env.dart';
+import 'dashboard/dashboard_api.dart';
 import 'quick_send/quick_send_api.dart';
 import 'startup/app_status_service.dart';
 
@@ -28,6 +29,7 @@ Future<void> main() async {
       prefs: SecureDevicePrefs(),
       biometrics: LocalAuthBiometricLock(),
       installedVersion: info.version,
+      dashboard: HttpDashboardApi(api),
       quickSend: HttpQuickSendApi(api),
       drafts: store,
     ),

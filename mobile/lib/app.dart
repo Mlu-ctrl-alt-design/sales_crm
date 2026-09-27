@@ -6,6 +6,7 @@ import 'auth/biometric_lock.dart';
 import 'auth/device_prefs.dart';
 import 'auth/login_screen.dart';
 import 'auth/unlock_screens.dart';
+import 'dashboard/dashboard_api.dart';
 import 'quick_send/quick_send_api.dart';
 import 'shell/home_shell.dart';
 import 'startup/app_status_service.dart';
@@ -20,6 +21,7 @@ class DaystarApp extends StatelessWidget {
     required this.prefs,
     required this.biometrics,
     required this.installedVersion,
+    required this.dashboard,
     required this.quickSend,
     required this.drafts,
   });
@@ -29,6 +31,7 @@ class DaystarApp extends StatelessWidget {
   final DevicePrefs prefs;
   final BiometricLock biometrics;
   final String installedVersion;
+  final DashboardApi dashboard;
   final QuickSendApi quickSend;
   final KeyValueStore drafts;
 
@@ -45,7 +48,11 @@ class DaystarApp extends StatelessWidget {
           auth: auth,
           prefs: prefs,
           biometrics: biometrics,
-          home: HomeShell(quickSend: quickSend, drafts: drafts),
+          home: HomeShell(
+            dashboard: dashboard,
+            quickSend: quickSend,
+            drafts: drafts,
+          ),
         ),
       ),
     );
