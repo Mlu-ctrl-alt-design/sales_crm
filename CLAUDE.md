@@ -15,7 +15,7 @@ The Expo / React Native prototype at the repo root (`app/`, `components/`, `api/
 
 - Never modify the Mobile Control or FAC apps. Extend through `daystar_mobile` hooks and endpoints only.
 - Never develop or run migrations against the production site. Use a local bench or staging site.
-- Company scope is `Daystar` (ZAR) only. Exclude `The Daystar` (USD) from every query.
+- Company scope is `Daystar` (ZAR). Every query must exclude rows explicitly tagged `The Daystar` (USD); rows with no `company` value are treated as Daystar's (n8n and web-form leads land unassigned with no company). Canonical filter: `company != 'The Daystar' OR company IS NULL`.
 - No Claude API key on the device. It lives in site config (`daystar_mobile_anthropic_key`).
 - The assistant never executes a write tool directly. Writes become an `Assistant Pending Action` and run only via `assistant.confirm`.
 - Rep price lock is enforced server-side (permlevel + `validate` hook), never only in Flutter.

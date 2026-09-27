@@ -56,6 +56,16 @@ Two roles, one site, one company ("Daystar", ZAR). Every user has their own Frap
 - Leads and opportunities: native `lead_owner` / `opportunity_owner`, defaulting to the creator.
 - Leads created by n8n, web forms or imports land unassigned; Mlu assigns them manually.
 
+**Company scope**
+
+The non-goal in the previous section removes legacy `The Daystar` (USD) invoicing from reporting, not "anything without a `Daystar` tag". Because leads created by n8n, web forms or imports land with no `company` value, the canonical filter for every dashboard query, assistant tool call and list scope is:
+
+```
+company != 'The Daystar' OR company IS NULL
+```
+
+A positive `company = 'Daystar'` filter would silently drop the exact leads the unassigned queue is meant to surface. If a query needs a stricter positive match (for example, ledger totals that must resolve to one currency), state that explicitly at the call site.
+
 **Enforcement notes**
 
 - User Permissions do not reliably filter list views on a child-table field, so rep scoping on Quotation, Sales Invoice and Customer needs a `permission_query_conditions` + `has_permission` hook on the Sales Team.
