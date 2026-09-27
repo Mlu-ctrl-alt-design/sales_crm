@@ -1,24 +1,15 @@
 import 'dart:convert';
 
 import 'package:daystar_sales/auth/auth_repository.dart';
-import 'package:daystar_sales/auth/key_value_store.dart';
 import 'package:daystar_sales/auth/mobile_control_auth.dart';
 import 'package:daystar_sales/auth/token_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-const site = 'https://crm-staging.thedaystar.co.za';
+import 'support/fakes.dart';
 
-class MemoryStore implements KeyValueStore {
-  final values = <String, String>{};
-  @override
-  Future<String?> read(String key) async => values[key];
-  @override
-  Future<void> write(String key, String value) async => values[key] = value;
-  @override
-  Future<void> delete(String key) async => values.remove(key);
-}
+const site = 'https://crm-staging.thedaystar.co.za';
 
 /// Shaped like mobile_control's build_auth_response (tokens at top level).
 Map<String, Object?> authBody({

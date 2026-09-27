@@ -19,6 +19,8 @@ Future<void> pumpApp(
       prefs: MemoryPrefs(),
       biometrics: FakeBiometrics(kind: null),
       installedVersion: installedVersion,
+      quickSend: FakeQuickSendApi(),
+      drafts: MemoryStore(),
     ),
   );
   await tester.pumpAndSettle();

@@ -14,7 +14,12 @@ Future<void> pumpFlow(
 }) async {
   await tester.pumpWidget(
     MaterialApp(
-      home: SignInFlow(auth: auth, prefs: prefs, biometrics: bio),
+      home: SignInFlow(
+        auth: auth,
+        prefs: prefs,
+        biometrics: bio,
+        home: testHome(),
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -201,6 +206,7 @@ Future<TestClock> pumpUnlocked(
         auth: FakeAuth(stored: const Session(user: 'mlu@example.com')),
         prefs: prefs,
         biometrics: bio,
+        home: testHome(),
         now: clock.call,
       ),
     ),

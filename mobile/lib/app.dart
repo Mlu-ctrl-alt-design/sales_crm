@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'auth/auth_repository.dart';
+import 'auth/key_value_store.dart';
 import 'auth/biometric_lock.dart';
 import 'auth/device_prefs.dart';
 import 'auth/login_screen.dart';
 import 'auth/unlock_screens.dart';
+import 'quick_send/quick_send_api.dart';
 import 'shell/home_shell.dart';
 import 'startup/app_status_service.dart';
 import 'startup/startup_gate.dart';
@@ -18,6 +20,8 @@ class DaystarApp extends StatelessWidget {
     required this.prefs,
     required this.biometrics,
     required this.installedVersion,
+    required this.quickSend,
+    required this.drafts,
   });
 
   final AppStatusService statusService;
@@ -25,6 +29,8 @@ class DaystarApp extends StatelessWidget {
   final DevicePrefs prefs;
   final BiometricLock biometrics;
   final String installedVersion;
+  final QuickSendApi quickSend;
+  final KeyValueStore drafts;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +41,12 @@ class DaystarApp extends StatelessWidget {
       home: StartupGate(
         statusService: statusService,
         installedVersion: installedVersion,
-        child: SignInFlow(auth: auth, prefs: prefs, biometrics: biometrics),
+        child: SignInFlow(
+          auth: auth,
+          prefs: prefs,
+          biometrics: biometrics,
+          home: HomeShell(quickSend: quickSend, drafts: drafts),
+        ),
       ),
     );
   }
@@ -53,6 +64,7 @@ class SignInFlow extends StatefulWidget {
     required this.auth,
     required this.prefs,
     required this.biometrics,
+    required this.home,
     this.lockAfter = const Duration(minutes: 5),
     this.now = DateTime.now,
   });
@@ -60,6 +72,9 @@ class SignInFlow extends StatefulWidget {
   final AuthRepository auth;
   final DevicePrefs prefs;
   final BiometricLock biometrics;
+
+  /// The signed-in app.
+  final Widget home;
 
   /// With quick unlock on, the app locks after this long in the background.
   final Duration lockAfter;
@@ -176,10 +191,7 @@ class _SignInFlowState extends State<SignInFlow> {
         children: [
           TickerMode(
             enabled: !_locked,
-            child: ExcludeSemantics(
-              excluding: _locked,
-              child: const HomeShell(),
-            ),
+            child: ExcludeSemantics(excluding: _locked, child: widget.home),
           ),
           if (_locked)
             UnlockScreen(

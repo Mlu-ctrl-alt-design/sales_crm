@@ -14,3 +14,15 @@ String formatZar(num amount, {bool cents = true}) {
   final body = cents ? '$whole,${parts.last}' : whole;
   return '${negative ? '−' : ''}R$nbsp$body';
 }
+
+/// [formatZar] for Rand; other currencies as "USD 1 234,50".
+String formatMoney(num amount, String? currency) {
+  if (currency == null || currency == 'ZAR') return formatZar(amount);
+  return formatZar(amount).replaceFirst('R', currency);
+}
+
+/// A quantity without a pointless ",0": 2 → "2", 1.5 → "1,5".
+String formatQty(num qty) {
+  if (qty == qty.roundToDouble()) return qty.toInt().toString();
+  return qty.toString().replaceFirst('.', ',');
+}

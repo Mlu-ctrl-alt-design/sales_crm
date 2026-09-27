@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../auth/key_value_store.dart';
+import '../quick_send/draft.dart';
+import '../quick_send/models.dart';
+import '../quick_send/pdf_share.dart';
+import '../quick_send/quick_send_api.dart';
+import '../quick_send/quick_send_screen.dart';
 import '../theme/daystar_theme.dart';
 
 enum HeroTab { dashboard, assistant, quickSend }
@@ -7,7 +13,18 @@ enum HeroTab { dashboard, assistant, quickSend }
 /// The three bespoke hero screens, plus a quick-create button on the
 /// screens that aren't already the create flow.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({
+    super.key,
+    required this.quickSend,
+    required this.drafts,
+    this.sharePdf = shareViaSheet,
+  });
+
+  final QuickSendApi quickSend;
+
+  /// Where the quick-send draft is kept between launches.
+  final KeyValueStore drafts;
+  final PdfSharer sharePdf;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -15,6 +32,21 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   HeroTab _tab = HeroTab.dashboard;
+  QuickSendDraft? _draft;
+
+  @override
+  void initState() {
+    super.initState();
+    QuickSendDraft.load(widget.drafts).then((draft) {
+      if (mounted) setState(() => _draft = draft);
+    });
+  }
+
+  @override
+  void dispose() {
+    _draft?.dispose();
+    super.dispose();
+  }
 
   static const _destinations = {
     HeroTab.dashboard: (
@@ -44,7 +76,10 @@ class _HomeShellState extends State<HomeShell> {
     if (!mounted || choice == null) return;
     switch (choice) {
       case QuickCreate.quote:
+        _draft?.setKind(DocKind.quote);
+        _select(HeroTab.quickSend);
       case QuickCreate.invoice:
+        _draft?.setKind(DocKind.invoice);
         _select(HeroTab.quickSend);
       case QuickCreate.customer:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,7 +98,17 @@ class _HomeShellState extends State<HomeShell> {
     final current = _destinations[_tab]!;
     return Scaffold(
       appBar: AppBar(title: Text(current.label)),
-      body: _PlaceholderTab(tab: _tab),
+      body: switch (_tab) {
+        HeroTab.quickSend =>
+          _draft == null
+              ? const Center(child: CircularProgressIndicator())
+              : QuickSendScreen(
+                  api: widget.quickSend,
+                  draft: _draft!,
+                  sharePdf: widget.sharePdf,
+                ),
+        _ => _PlaceholderTab(tab: _tab),
+      },
       floatingActionButton: _tab == HeroTab.quickSend
           ? null
           : FloatingActionButton(
@@ -166,10 +211,7 @@ class _PlaceholderTab extends StatelessWidget {
         'Questions are answered from ERPNext. Anything that changes a '
             'record waits for your tap.',
       ),
-      HeroTab.quickSend => (
-        'Quote or invoice in under 90 seconds',
-        'Pick a customer, add items from the price list, review and send.',
-      ),
+      HeroTab.quickSend => ('', ''),
     };
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
