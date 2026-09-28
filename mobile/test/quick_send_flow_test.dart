@@ -1,5 +1,6 @@
 import 'package:daystar_sales/api/api_client.dart';
 import 'package:daystar_sales/quick_send/draft.dart';
+import 'package:daystar_sales/quick_send/models.dart';
 import 'package:daystar_sales/theme/daystar_theme.dart';
 import 'package:daystar_sales/theme/money.dart';
 import 'package:flutter/material.dart';
@@ -240,5 +241,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Review quote'), findsOneWidget);
+  });
+
+  testWidgets('an earlier invoice can be found and sent again', (tester) async {
+    const line = DraftLine(
+      itemCode: 'PANEL-450',
+      itemName: 'Solar panel 450W',
+      uom: 'Nos',
+      qty: 1,
+    );
+    final api = FakeQuickSendApi();
+    await api.submit(DocKind.invoice, acme.name, [
+      line,
+    ], 'earlier-invoice-key-0001');
+    await api.submit(DocKind.quote, acme.name, [
+      line,
+    ], 'earlier-quote-key-00001');
+    await openQuickSend(tester, api: api);
+
+    await tester.tap(find.text('Invoice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('send-existing')));
+    await tester.pumpAndSettle();
+    // Only invoices are listed while Invoice is selected.
+    expect(find.byKey(const Key('doc-ACC-SINV-2026-00001')), findsOneWidget);
+    expect(find.byKey(const Key('doc-SAL-QTN-2026-00002')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('doc-ACC-SINV-2026-00001')));
+    await tester.pumpAndSettle();
+    expect(find.text('SEND INVOICE AGAIN'), findsOneWidget);
+    expect(find.text('ACC-SINV-2026-00001'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('send-email')));
+    await tester.pumpAndSettle();
+    expect(api.emails.single.name, 'ACC-SINV-2026-00001');
   });
 }

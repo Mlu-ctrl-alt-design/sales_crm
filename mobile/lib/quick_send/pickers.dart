@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../api/api_client.dart';
+import '../dashboard/dates.dart';
 import '../theme/daystar_theme.dart';
 import '../theme/money.dart';
 import 'models.dart';
@@ -58,6 +59,40 @@ Future<ItemOption?> pickItem(
           style: item.rate == null
               ? text.bodySmall
               : text.titleMedium?.copyWith(fontFamily: DaystarFonts.serif),
+        ),
+      );
+    },
+  );
+}
+
+Future<DocListing?> pickDocument(
+  BuildContext context,
+  QuickSendApi api,
+  DocKind kind,
+) {
+  return _showSearch<DocListing>(
+    context,
+    title: 'Send a ${kind.noun} again',
+    hint: 'Number or customer',
+    search: (text) => api.searchDocuments(kind, text),
+    empty: 'No submitted ${kind.noun}s match.',
+    tile: (context, doc) {
+      final text = Theme.of(context).textTheme;
+      return ListTile(
+        key: Key('doc-${doc.name}'),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+        title: Text(doc.customerName, style: text.titleMedium),
+        subtitle: Text(
+          [
+            doc.name,
+            if (doc.date != null) dayLabel(doc.date!),
+            if ((doc.status ?? '').isNotEmpty) doc.status!,
+          ].join(' · '),
+          style: text.bodySmall,
+        ),
+        trailing: Text(
+          formatMoney(doc.total, doc.currency),
+          style: text.titleMedium?.copyWith(fontFamily: DaystarFonts.serif),
         ),
       );
     },

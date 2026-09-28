@@ -149,6 +149,28 @@ class FakeQuickSendApi implements QuickSendApi {
       );
 
   @override
+  Future<List<DocListing>> searchDocuments(DocKind kind, String text) async => [
+    for (final doc in created.values)
+      if (doc.kind == kind &&
+          '${doc.name} ${doc.customerName}'.toLowerCase().contains(
+            text.toLowerCase(),
+          ))
+        DocListing(
+          kind: kind,
+          name: doc.name!,
+          customerName: doc.customerName,
+          currency: doc.currency,
+          total: doc.total,
+          date: DateTime(2026, 9, 12),
+          status: 'Open',
+        ),
+  ];
+
+  @override
+  Future<DocSummary> getDocument(DocKind kind, String name) async =>
+      created.values.firstWhere((doc) => doc.name == name);
+
+  @override
   Future<DocSummary> preview(
     DocKind kind,
     String customer,

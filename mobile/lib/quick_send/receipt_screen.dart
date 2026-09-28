@@ -8,17 +8,22 @@ import 'pdf_share.dart';
 import 'quick_send_api.dart';
 
 /// The submitted document's number, then email it or share the PDF.
+///
+/// Opened right after submitting, or from the list of earlier documents
+/// ([justSubmitted] false) to send one again.
 class ReceiptScreen extends StatefulWidget {
   const ReceiptScreen({
     super.key,
     required this.api,
     required this.doc,
     required this.sharePdf,
+    this.justSubmitted = true,
   });
 
   final QuickSendApi api;
   final DocSummary doc;
   final PdfSharer sharePdf;
+  final bool justSubmitted;
 
   @override
   State<ReceiptScreen> createState() => _ReceiptScreenState();
@@ -129,18 +134,21 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
         children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                color: DaystarColors.moneyIn,
-                child: const Icon(Icons.check, size: 18, color: Colors.white),
-              ),
-              const SizedBox(width: 10),
-              Eyebrow('${_doc.kind.label} submitted'),
-            ],
-          ),
+          if (widget.justSubmitted)
+            Row(
+              children: [
+                Container(
+                  width: 28,
+                  height: 28,
+                  color: DaystarColors.moneyIn,
+                  child: const Icon(Icons.check, size: 18, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                Eyebrow('${_doc.kind.label} submitted'),
+              ],
+            )
+          else
+            Eyebrow('Send ${_doc.kind.noun} again'),
           const SizedBox(height: 14),
           SelectableText(
             _doc.name ?? '',

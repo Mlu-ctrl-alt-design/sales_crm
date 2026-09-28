@@ -10,6 +10,12 @@ abstract class QuickSendApi {
 
   Future<ItemSearch> searchItems(String customer, String text);
 
+  /// Submitted documents of [kind], newest first, matching [text].
+  Future<List<DocListing>> searchDocuments(DocKind kind, String text);
+
+  /// A submitted document with its send defaults.
+  Future<DocSummary> getDocument(DocKind kind, String name);
+
   /// The document as it would be submitted; nothing is saved.
   Future<DocSummary> preview(
     DocKind kind,
@@ -59,6 +65,27 @@ class HttpQuickSendApi implements QuickSendApi {
       'txt': text,
     });
     return ItemSearch.fromJson(result as Map<String, dynamic>);
+  }
+
+  @override
+  Future<List<DocListing>> searchDocuments(DocKind kind, String text) async {
+    final result = await _client.get('$_base.search_documents', {
+      'doctype': kind.doctype,
+      'txt': text,
+    });
+    return [
+      for (final row in (result as List? ?? const []))
+        DocListing.fromJson(row as Map<String, dynamic>),
+    ];
+  }
+
+  @override
+  Future<DocSummary> getDocument(DocKind kind, String name) async {
+    final result = await _client.get('$_base.get_document', {
+      'doctype': kind.doctype,
+      'name': name,
+    });
+    return DocSummary.fromJson(result as Map<String, dynamic>);
   }
 
   @override

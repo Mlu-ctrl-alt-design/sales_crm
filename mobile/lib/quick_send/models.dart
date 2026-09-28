@@ -150,6 +150,41 @@ class DocSummary {
   }
 }
 
+/// A submitted quote or invoice in the "send again" list.
+class DocListing {
+  const DocListing({
+    required this.kind,
+    required this.name,
+    required this.customerName,
+    required this.currency,
+    required this.total,
+    this.date,
+    this.status,
+  });
+
+  final DocKind kind;
+  final String name;
+  final String customerName;
+  final String currency;
+  final double total;
+
+  /// The quote's date or the invoice's posting date.
+  final DateTime? date;
+
+  /// ERPNext's status, e.g. "Open", "Ordered", "Paid", "Overdue".
+  final String? status;
+
+  factory DocListing.fromJson(Map<String, dynamic> json) => DocListing(
+    kind: DocKind.fromDoctype(json['doctype'] as String),
+    name: json['name'] as String,
+    customerName: (json['customer_name'] as String?) ?? '',
+    currency: (json['currency'] as String?) ?? 'ZAR',
+    total: _toDouble(json['total']) ?? 0,
+    date: DateTime.tryParse('${json['date']}'),
+    status: json['status'] as String?,
+  );
+}
+
 class SummaryLine {
   const SummaryLine({
     required this.itemCode,

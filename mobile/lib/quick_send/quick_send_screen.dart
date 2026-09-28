@@ -11,6 +11,7 @@ import 'models.dart';
 import 'pdf_share.dart';
 import 'pickers.dart';
 import 'quick_send_api.dart';
+import 'receipt_screen.dart';
 import 'review_screen.dart';
 
 /// Pick a customer, add items; the total comes from the server as you go.
@@ -38,6 +39,7 @@ class _QuickSendScreenState extends State<QuickSendScreen> {
   DocSummary? _preview;
   String? _error;
   bool _loading = false;
+  bool _opening = false;
   Timer? _debounce;
   int _request = 0;
 
@@ -167,6 +169,34 @@ class _QuickSendScreenState extends State<QuickSendScreen> {
     );
   }
 
+  Future<void> _sendExisting() async {
+    final kind = _draft.kind;
+    final listing = await pickDocument(context, widget.api, kind);
+    if (listing == null || !mounted) return;
+    setState(() => _opening = true);
+    try {
+      final doc = await widget.api.getDocument(kind, listing.name);
+      if (!mounted) return;
+      setState(() => _opening = false);
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ReceiptScreen(
+            api: widget.api,
+            doc: doc,
+            sharePdf: widget.sharePdf,
+            justSubmitted: false,
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _opening = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   Future<void> _startOver() async {
     final ok = await showDialog<bool>(
       context: context,
@@ -237,7 +267,21 @@ class _QuickSendScreenState extends State<QuickSendScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 28),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: const Key('send-existing'),
+                  onPressed: _opening ? null : _sendExisting,
+                  icon: _opening
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.history),
+                  label: Text('Send an earlier ${_draft.kind.noun}'),
+                ),
+              ),
+              const SizedBox(height: 16),
               const Eyebrow('Customer'),
               const SizedBox(height: 8),
               if (customer == null)
