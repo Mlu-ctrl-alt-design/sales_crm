@@ -197,13 +197,18 @@ def receivables(company: str, report_date) -> dict:
 
 def sales(company: str, from_date, to_date) -> float:
 	"""Submitted Sales Invoices net of VAT, credit notes included (negative)."""
-	return flt(
-		frappe.db.get_value(
-			"Sales Invoice",
-			{"company": company, "docstatus": 1, "posting_date": ["between", [from_date, to_date]]},
-			"sum(base_net_total)",
+	invoice = frappe.qb.DocType("Sales Invoice")
+	(value,) = (
+		frappe.qb.from_(invoice)
+		.select(Sum(invoice.base_net_total))
+		.where(
+			(invoice.company == company)
+			& (invoice.docstatus == 1)
+			& (invoice.posting_date[from_date:to_date])
 		)
+		.run()[0]
 	)
+	return flt(value)
 
 
 def sales_count(company: str, from_date, to_date) -> int:
@@ -220,18 +225,19 @@ def sales_count(company: str, from_date, to_date) -> int:
 
 def paid_out(company: str, from_date, to_date) -> float:
 	"""Submitted Payment Entries of type Pay."""
-	return flt(
-		frappe.db.get_value(
-			"Payment Entry",
-			{
-				"company": company,
-				"docstatus": 1,
-				"payment_type": "Pay",
-				"posting_date": ["between", [from_date, to_date]],
-			},
-			"sum(base_paid_amount)",
+	payment = frappe.qb.DocType("Payment Entry")
+	(value,) = (
+		frappe.qb.from_(payment)
+		.select(Sum(payment.base_paid_amount))
+		.where(
+			(payment.company == company)
+			& (payment.docstatus == 1)
+			& (payment.payment_type == "Pay")
+			& (payment.posting_date[from_date:to_date])
 		)
+		.run()[0]
 	)
+	return flt(value)
 
 
 def pipeline(company: str, span: dict, owner: str | None = None, sales_persons=None) -> dict:
@@ -240,10 +246,6 @@ def pipeline(company: str, span: dict, owner: str | None = None, sales_persons=N
 	With `owner` / `sales_persons`, only that rep's: leads and opportunities
 	they own, quotes where they're on the Sales Team.
 	"""
-	opportunity_filters = {"company": company, "status": ["in", OPEN_OPPORTUNITY_STATUSES]}
-	if owner:
-		opportunity_filters["opportunity_owner"] = owner
-
 	def new_leads(from_date, to_date):
 		return _count_leads(
 			company,
@@ -253,9 +255,18 @@ def pipeline(company: str, span: dict, owner: str | None = None, sales_persons=N
 
 	open_leads = _count_leads(company, owner, frappe.qb.DocType("Lead").status.isin(OPEN_LEAD_STATUSES))
 
-	opportunities = frappe.db.get_value(
-		"Opportunity", opportunity_filters, ["count(name)", "sum(base_opportunity_amount)"]
-	) or (0, 0)
+	opportunity = frappe.qb.DocType("Opportunity")
+	opp_query = (
+		frappe.qb.from_(opportunity)
+		.select(Count(opportunity.name), Sum(opportunity.base_opportunity_amount))
+		.where(
+			(opportunity.company == company)
+			& (opportunity.status.isin(OPEN_OPPORTUNITY_STATUSES))
+		)
+	)
+	if owner:
+		opp_query = opp_query.where(opportunity.opportunity_owner == owner)
+	opportunities = opp_query.run()[0]
 	quotes = _open_quotes(company, sales_persons)
 
 	return {
