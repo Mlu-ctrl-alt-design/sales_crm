@@ -166,3 +166,34 @@ class TestSendEmail(IntegrationTestCase):
 		with self.set_user(OWNER):
 			with self.assertRaises(frappe.InvalidEmailAddressError):
 				documents.send_email("Quotation", quote["name"], ["not-an-email"])
+
+	def test_submitted_documents_are_listed_newest_first_and_open_ready_to_send(self):
+		quote = self.submitted_quote()
+		with self.set_user(OWNER):
+			found = documents.search_documents("Quotation", quote["name"])
+			opened = documents.get_document("Quotation", quote["name"])
+
+		self.assertEqual([row["name"] for row in found], [quote["name"]])
+		self.assertEqual(found[0]["total"], quote["total"])
+		self.assertEqual(opened["name"], quote["name"])
+		self.assertIn("send", opened)
+
+	def test_drafts_are_not_listed_or_opened(self):
+		with self.set_user(OWNER):
+			draft = frappe.get_doc(
+				{
+					"doctype": "Quotation",
+					"quotation_to": "Customer",
+					"party_name": CUSTOMER,
+					"company": self.company,
+					"items": [{"item_code": ITEM, "qty": 1}],
+				}
+			).insert()
+			self.assertEqual(documents.search_documents("Quotation", draft.name), [])
+			with self.assertRaisesRegex(frappe.ValidationError, "Only submitted"):
+				documents.get_document("Quotation", draft.name)
+
+	def test_only_quotes_and_invoices_are_listed(self):
+		with self.set_user(OWNER):
+			with self.assertRaises(frappe.ValidationError):
+				documents.search_documents("Purchase Invoice")

@@ -98,6 +98,60 @@ def search_items(customer: str, txt: str | None = None, limit: int = SEARCH_LIMI
 	}
 
 
+@frappe.whitelist(methods=["GET"])
+def search_documents(doctype: str, txt: str | None = None, limit: int = SEARCH_LIMIT):
+	"""Submitted quotes or invoices the user can read, newest first, to send again."""
+	_check_doctype(doctype)
+	txt = (txt or "").strip()
+	or_filters = None
+	if txt:
+		like = f"%{txt}%"
+		or_filters = {field: ["like", like] for field in ("name", "customer_name")}
+
+	date_field = "transaction_date" if doctype == "Quotation" else "posting_date"
+	rows = frappe.get_list(
+		doctype,
+		filters={"company": get_company(), "docstatus": 1},
+		or_filters=or_filters,
+		fields=[
+			"name",
+			"customer_name",
+			f"{date_field} as date",
+			"status",
+			"currency",
+			"grand_total",
+			"rounded_total",
+		],
+		order_by=f"{date_field} desc, creation desc",
+		limit_page_length=_limit(limit),
+	)
+	return [
+		{
+			"doctype": doctype,
+			"name": row.name,
+			"customer_name": row.customer_name,
+			"date": str(row.date),
+			"status": row.status,
+			"currency": row.currency,
+			"total": row.rounded_total or row.grand_total,
+		}
+		for row in rows
+	]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_document(doctype: str, name: str):
+	"""A submitted quote or invoice with its send defaults, as `submit` returns it."""
+	_check_doctype(doctype)
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission("read")
+	if doc.company != get_company():
+		frappe.throw(_("{0} {1} isn't a Daystar document.").format(_(doctype), name), frappe.PermissionError)
+	if doc.docstatus != 1:
+		frappe.throw(_("Only submitted documents can be sent from the app."))
+	return _submitted(doc)
+
+
 @frappe.whitelist(methods=["POST"])
 def preview(doctype: str, customer: str, items):
 	"""The document as it would be submitted, without saving anything."""
