@@ -79,6 +79,7 @@ class MobileControlAuthRepository implements AuthRepository {
 
   /// A usable access token for `Authorization: Bearer`, refreshed if old.
   /// Null when signed out or the session can no longer be refreshed.
+  @override
   Future<String?> accessToken() async {
     final stored = await _tokens.load();
     if (stored == null) return null;

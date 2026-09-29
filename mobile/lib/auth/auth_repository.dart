@@ -15,6 +15,10 @@ abstract class AuthRepository {
   Future<Session> login({required String username, required String password});
 
   Future<void> logout();
+
+  /// A usable Bearer token for authenticated calls, refreshed if stale.
+  /// Returns null when there is no session or the refresh has failed.
+  Future<String?> accessToken();
 }
 
 /// A sign-in problem the user can act on; [message] is shown as-is.

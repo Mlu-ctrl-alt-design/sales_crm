@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../auth/auth_repository.dart';
+import '../config/env.dart';
+import '../forms/form_submit_service.dart';
+import '../forms/minimal_form_screen.dart';
+import '../forms/mobile_layout_service.dart';
 import '../theme/daystar_theme.dart';
 
 enum HeroTab { dashboard, assistant, quickSend }
@@ -7,7 +12,9 @@ enum HeroTab { dashboard, assistant, quickSend }
 /// The three bespoke hero screens, plus a quick-create button on the
 /// screens that aren't already the create flow.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, required this.auth});
+
+  final AuthRepository auth;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -43,6 +50,18 @@ class _HomeShellState extends State<HomeShell> {
     );
     if (!mounted || choice == null) return;
     switch (choice) {
+      case QuickCreate.lead:
+        await _openMinimalForm(
+          doctype: 'CRM Lead',
+          mode: 'quick',
+          title: 'New lead',
+        );
+      case QuickCreate.deal:
+        await _openMinimalForm(
+          doctype: 'CRM Deal',
+          mode: 'quick',
+          title: 'New deal',
+        );
       case QuickCreate.quote:
       case QuickCreate.invoice:
         _select(HeroTab.quickSend);
@@ -56,6 +75,32 @@ class _HomeShellState extends State<HomeShell> {
           ),
         );
     }
+  }
+
+  Future<void> _openMinimalForm({
+    required String doctype,
+    required String mode,
+    required String title,
+  }) async {
+    final layoutService = MobileLayoutService(
+      siteUrl: Env.siteUrl,
+      accessToken: widget.auth.accessToken,
+    );
+    final submitService = FormSubmitService(
+      siteUrl: Env.siteUrl,
+      accessToken: widget.auth.accessToken,
+    );
+    await Navigator.of(context).push(
+      MaterialPageRoute<String>(
+        builder: (_) => MinimalFormScreen(
+          doctype: doctype,
+          mode: mode,
+          title: title,
+          layoutService: layoutService,
+          submitService: submitService,
+        ),
+      ),
+    );
   }
 
   @override
@@ -93,7 +138,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-enum QuickCreate { quote, invoice, customer }
+enum QuickCreate { lead, deal, quote, invoice, customer }
 
 class QuickCreateSheet extends StatelessWidget {
   const QuickCreateSheet({super.key});
@@ -122,9 +167,22 @@ class QuickCreateSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            option(
+              QuickCreate.lead,
+              Icons.person_outline,
+              'New lead',
+              'Fields you see are set from the Desk',
+            ),
+            option(
+              QuickCreate.deal,
+              Icons.handshake_outlined,
+              'New deal',
+              'Fields you see are set from the Desk',
+            ),
             option(
               QuickCreate.quote,
               Icons.request_quote_outlined,
@@ -144,6 +202,7 @@ class QuickCreateSheet extends StatelessWidget {
               'Add someone to quote',
             ),
           ],
+        ),
         ),
       ),
     );

@@ -178,7 +178,7 @@ class _SignInFlowState extends State<SignInFlow> {
             enabled: !_locked,
             child: ExcludeSemantics(
               excluding: _locked,
-              child: const HomeShell(),
+              child: HomeShell(auth: widget.auth),
             ),
           ),
           if (_locked)

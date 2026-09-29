@@ -32,6 +32,9 @@ class FakeAuth implements AuthRepository {
 
   @override
   Future<void> logout() async => stored = null;
+
+  @override
+  Future<String?> accessToken() async => stored == null ? null : 'fake-token';
 }
 
 class MemoryPrefs implements DevicePrefs {
