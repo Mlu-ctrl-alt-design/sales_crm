@@ -59,15 +59,16 @@ class ApiClient {
   Future<http.Response> _send(
     Future<http.Response> Function(Map<String, String> headers) request,
   ) async {
-    final token = await accessToken();
-    if (token == null) {
-      throw ApiException(
-        'Your session has ended. Sign in again.',
-        ApiErrorKind.signedOut,
-      );
-    }
     final http.Response response;
     try {
+      // Inside the try: getting a token may refresh it over the network.
+      final token = await accessToken();
+      if (token == null) {
+        throw ApiException(
+          'Your session has ended. Sign in again.',
+          ApiErrorKind.signedOut,
+        );
+      }
       response = await request({
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',

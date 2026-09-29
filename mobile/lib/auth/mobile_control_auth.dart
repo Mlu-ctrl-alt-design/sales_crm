@@ -125,7 +125,11 @@ class MobileControlAuthRepository implements AuthRepository {
     final response = await _post('mobile_auth.refresh_token', {
       'refresh_token': current.refreshToken,
     });
-    if (response.statusCode == 401 || response.statusCode == 403) {
+    // Mobile Control refuses an unknown or expired refresh token with a
+    // 417 ValidationError, not a 401; any 4xx but a timeout or rate limit
+    // means the server looked at the token and said no.
+    final code = response.statusCode;
+    if (code >= 400 && code < 500 && code != 408 && code != 429) {
       await _tokens.clear();
       throw AuthException('Your session has ended. Sign in again.');
     }

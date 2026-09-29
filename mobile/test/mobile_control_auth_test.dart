@@ -224,6 +224,26 @@ void main() {
     expect(await TokenStore(store).load(), isNull);
   });
 
+  test(
+    'an expired refresh token (417 from Mobile Control) signs out',
+    () async {
+      final auth = repo((request) async {
+        if (request.url.path.endsWith('mobile_auth.login')) {
+          return json(authBody(), 200);
+        }
+        return json({
+          'exc_type': 'ValidationError',
+          '_server_messages': '["Invalid or expired refresh token"]',
+        }, 417);
+      });
+      await auth.login(username: 'a', password: 'b');
+      clock.value = clock.value.add(const Duration(days: 2));
+
+      expect(await auth.accessToken(), isNull);
+      expect(await TokenStore(store).load(), isNull);
+    },
+  );
+
   test('offline at open keeps the session', () async {
     var online = true;
     final auth = repo((request) async {

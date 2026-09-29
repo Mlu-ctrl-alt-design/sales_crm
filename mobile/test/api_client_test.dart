@@ -160,6 +160,20 @@ void main() {
     );
   });
 
+  test('no connection while refreshing the token is "offline"', () async {
+    final api = ApiClient(
+      siteUrl: site,
+      accessToken: () async => throw http.ClientException('no signal'),
+      client: MockClient((_) async => http.Response('{}', 200)),
+    );
+    await expectLater(
+      api.get('daystar_mobile.api.dashboard.get'),
+      throwsA(
+        isA<ApiException>().having((e) => e.kind, 'kind', ApiErrorKind.offline),
+      ),
+    );
+  });
+
   test('a server crash does not leak a traceback', () async {
     final api = clientFor(
       (_) async => http.Response(
