@@ -17,9 +17,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final info = await PackageInfo.fromPlatform();
   final store = SecureKeyValueStore();
+  final tokens = TokenStore(store);
   final auth = MobileControlAuthRepository(
     siteUrl: Env.siteUrl,
-    tokens: TokenStore(store),
+    tokens: tokens,
   );
   final api = ApiClient(siteUrl: Env.siteUrl, accessToken: auth.accessToken);
   runApp(
@@ -29,7 +30,11 @@ Future<void> main() async {
       prefs: SecureDevicePrefs(),
       biometrics: LocalAuthBiometricLock(),
       installedVersion: info.version,
-      dashboard: HttpDashboardApi(api),
+      dashboard: HttpDashboardApi(
+        api,
+        store: store,
+        currentUser: () async => (await tokens.load())?.user,
+      ),
       quickSend: HttpQuickSendApi(api),
       drafts: store,
     ),

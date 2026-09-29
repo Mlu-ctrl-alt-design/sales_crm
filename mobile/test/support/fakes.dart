@@ -295,11 +295,21 @@ HomeShell testHome({
 
 /// Shaped like `daystar_mobile.api.dashboard.get`, owner view by default.
 class FakeDashboardApi implements DashboardApi {
-  FakeDashboardApi({this.json, this.error});
+  FakeDashboardApi({
+    this.json,
+    this.error,
+    Map<DashboardPeriod, DashboardData>? saved,
+  }) : saved = saved ?? {};
 
   Map<String, dynamic>? json;
-  ApiException? error;
+  Object? error;
+
+  /// What's kept on the device, as [HttpDashboardApi] keeps it.
+  final Map<DashboardPeriod, DashboardData> saved;
   final calls = <(DashboardPeriod, bool)>[];
+
+  @override
+  Future<DashboardData?> cached(DashboardPeriod period) async => saved[period];
 
   @override
   Future<DashboardData> get(
@@ -308,7 +318,7 @@ class FakeDashboardApi implements DashboardApi {
   }) async {
     calls.add((period, refresh));
     if (error != null) throw error!;
-    return DashboardData.fromJson(
+    return saved[period] = DashboardData.fromJson(
       json ?? ownerJson(),
       DateTime(2026, 9, 27, 18, 52),
     );

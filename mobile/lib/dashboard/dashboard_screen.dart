@@ -35,7 +35,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _show(_period);
+  }
+
+  /// The last figures fetched for [period], from memory or the device; the
+  /// server is only asked when there are none, or on pull to refresh.
+  Future<void> _show(DashboardPeriod period) async {
+    if (_loaded.containsKey(period)) return;
+    DashboardData? saved;
+    try {
+      saved = await widget.api.cached(period);
+    } catch (_) {
+      saved = null;
+    }
+    if (!mounted) return;
+    if (saved == null) {
+      if (period == _period) await _load();
+      return;
+    }
+    setState(() => _loaded[period] = saved!);
   }
 
   Future<void> _load({bool refresh = false}) async {
@@ -52,19 +70,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loaded[period] = data;
         _loading = false;
       });
-    } on ApiException catch (e) {
+    } catch (e) {
+      // Anything, not just ApiException: an unexpected reply must end the
+      // spinner rather than leave it turning.
       if (!mounted || request != _request) return;
       setState(() {
-        _error = e.message;
         _loading = false;
+        // A reply for a period no longer on screen isn't this one's error.
+        if (period != _period) return;
+        _error = e is ApiException
+            ? e.message
+            : "Daystar sent back figures the app couldn't read.";
       });
     }
   }
 
   void _select(DashboardPeriod period) {
     if (period == _period) return;
-    setState(() => _period = period);
-    if (!_loaded.containsKey(period)) _load();
+    setState(() {
+      _period = period;
+      _error = null;
+    });
+    _show(period);
   }
 
   @override

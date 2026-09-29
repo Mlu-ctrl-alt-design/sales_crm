@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:daystar_sales/api/api_client.dart';
+import 'package:daystar_sales/dashboard/dashboard_api.dart';
 import 'package:daystar_sales/dashboard/dashboard_screen.dart';
 import 'package:daystar_sales/dashboard/dates.dart';
 import 'package:daystar_sales/dashboard/models.dart';
@@ -6,6 +9,8 @@ import 'package:daystar_sales/theme/daystar_theme.dart';
 import 'package:daystar_sales/theme/money.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import 'support/fakes.dart';
 
@@ -169,5 +174,90 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('kpi-profit')), findsOneWidget);
+  });
+
+  testWidgets('saved figures show straight away, with no fetch', (
+    tester,
+  ) async {
+    final api = FakeDashboardApi(
+      saved: {
+        DashboardPeriod.thisMonth: DashboardData.fromJson(
+          ownerJson(),
+          DateTime(2026, 9, 26, 8, 5),
+        ),
+      },
+    );
+    await pumpDashboard(tester, api);
+
+    expect(find.byKey(const Key('kpi-profit')), findsOneWidget);
+    expect(find.textContaining('UPDATED 26 SEP, 08:05'), findsOneWidget);
+    expect(api.calls, isEmpty);
+
+    await tester.fling(
+      find.byKey(const Key('kpi-profit')),
+      const Offset(0, 400),
+      1000,
+    );
+    await tester.pumpAndSettle();
+    expect(api.calls, [(DashboardPeriod.thisMonth, true)]);
+  });
+
+  testWidgets('an unreadable reply ends the spinner with an error', (
+    tester,
+  ) async {
+    final api = FakeDashboardApi(error: TypeError());
+    await pumpDashboard(tester, api);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byKey(const Key('dashboard-error')), findsOneWidget);
+  });
+
+  group('HttpDashboardApi keeps the last figures', () {
+    HttpDashboardApi apiFor(MemoryStore store, String? user) =>
+        HttpDashboardApi(
+          ApiClient(
+            siteUrl: 'https://crm.example',
+            accessToken: () async => 'token',
+            client: MockClient(
+              (_) async =>
+                  http.Response(jsonEncode({'message': ownerJson()}), 200),
+            ),
+          ),
+          store: store,
+          currentUser: () async => user,
+          now: () => DateTime(2026, 9, 27, 18, 52),
+        );
+
+    test('for the same user, across launches', () async {
+      final store = MemoryStore();
+      await apiFor(
+        store,
+        'mlu@thedaystar.co.za',
+      ).get(DashboardPeriod.thisMonth);
+
+      final next = apiFor(store, 'mlu@thedaystar.co.za');
+      final saved = await next.cached(DashboardPeriod.thisMonth);
+      expect(saved, isA<OwnerDashboard>());
+      expect(saved!.fetchedAt, DateTime(2026, 9, 27, 18, 52));
+      expect(await next.cached(DashboardPeriod.lastMonth), isNull);
+    });
+
+    test('never for someone else signing in on the phone', () async {
+      final store = MemoryStore();
+      await apiFor(
+        store,
+        'mlu@thedaystar.co.za',
+      ).get(DashboardPeriod.thisMonth);
+
+      final rep = apiFor(store, 'rep@thedaystar.co.za');
+      expect(await rep.cached(DashboardPeriod.thisMonth), isNull);
+    });
+
+    test('drops a copy it cannot read', () async {
+      final store = MemoryStore()..values['dashboard.this_month'] = '{oops';
+      final api = apiFor(store, 'mlu@thedaystar.co.za');
+      expect(await api.cached(DashboardPeriod.thisMonth), isNull);
+      expect(store.values, isEmpty);
+    });
   });
 }
