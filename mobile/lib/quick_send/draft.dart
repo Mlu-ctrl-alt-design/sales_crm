@@ -56,6 +56,22 @@ class DraftLine {
   );
 }
 
+/// The opportunity a quote is being made for.
+class DraftOpportunity {
+  const DraftOpportunity({required this.name, required this.title});
+
+  final String name;
+  final String title;
+
+  Map<String, Object?> toJson() => {'name': name, 'title': title};
+
+  factory DraftOpportunity.fromJson(Map<String, dynamic> json) =>
+      DraftOpportunity(
+        name: json['name'] as String,
+        title: (json['title'] as String?) ?? json['name'] as String,
+      );
+}
+
 /// The quote or invoice being put together, saved on every change so it
 /// survives the app closing, a lock or a failed submit.
 ///
@@ -68,8 +84,9 @@ class QuickSendDraft extends ChangeNotifier {
     this._kind,
     this._customer,
     this._lines,
-    this._key,
-  );
+    this._key, [
+    this._opportunity,
+  ]);
 
   /// The saved draft, or a new empty one.
   static Future<QuickSendDraft> load(KeyValueStore store) async {
@@ -78,6 +95,7 @@ class QuickSendDraft extends ChangeNotifier {
       try {
         final json = jsonDecode(raw) as Map<String, dynamic>;
         final customer = json['customer'];
+        final opportunity = json['opportunity'];
         return QuickSendDraft._(
           store,
           DocKind.values.byName(json['kind'] as String),
@@ -89,6 +107,9 @@ class QuickSendDraft extends ChangeNotifier {
               DraftLine.fromJson(line as Map<String, dynamic>),
           ],
           json['key'] as String,
+          opportunity is Map<String, dynamic>
+              ? DraftOpportunity.fromJson(opportunity)
+              : null,
         );
       } on Object {
         // Unreadable (e.g. from an older build): start fresh.
@@ -104,11 +125,16 @@ class QuickSendDraft extends ChangeNotifier {
   CustomerOption? _customer;
   List<DraftLine> _lines;
   String _key;
+  DraftOpportunity? _opportunity;
 
   DocKind get kind => _kind;
   CustomerOption? get customer => _customer;
   List<DraftLine> get lines => List.unmodifiable(_lines);
   String get key => _key;
+
+  /// Only ever set on a quote.
+  DraftOpportunity? get opportunity =>
+      _kind == DocKind.quote ? _opportunity : null;
   bool get isEmpty => _customer == null && _lines.isEmpty;
   bool get isReady => _customer != null && _lines.isNotEmpty;
 
@@ -118,8 +144,29 @@ class QuickSendDraft extends ChangeNotifier {
     _changed();
   }
 
+  /// A different customer drops the opportunity: it was someone else's.
   void setCustomer(CustomerOption customer) {
+    if (customer.name != _customer?.name) _opportunity = null;
     _customer = customer;
+    _changed();
+  }
+
+  void clearOpportunity() {
+    _opportunity = null;
+    _changed();
+  }
+
+  /// A fresh draft for [customer], e.g. a quote for an opportunity.
+  void startFor(
+    DocKind kind,
+    CustomerOption customer, {
+    DraftOpportunity? opportunity,
+  }) {
+    _kind = kind;
+    _customer = customer;
+    _opportunity = opportunity;
+    _lines = [];
+    _key = newKey();
     _changed();
   }
 
@@ -165,6 +212,7 @@ class QuickSendDraft extends ChangeNotifier {
   /// Empties the draft for the next document, keeping quote/invoice.
   void clear() {
     _customer = null;
+    _opportunity = null;
     _lines = [];
     _key = newKey();
     _changed();
@@ -180,6 +228,7 @@ class QuickSendDraft extends ChangeNotifier {
     'customer': _customer?.toJson(),
     'lines': [for (final line in _lines) line.toJson()],
     'key': _key,
+    'opportunity': _opportunity?.toJson(),
   };
 
   /// 32 random hex characters.

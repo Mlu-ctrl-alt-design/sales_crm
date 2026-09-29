@@ -11,6 +11,7 @@ import 'auth/token_store.dart';
 import 'config/env.dart';
 import 'dashboard/dashboard_api.dart';
 import 'quick_send/quick_send_api.dart';
+import 'sales/sales_api.dart';
 import 'startup/app_status_service.dart';
 
 Future<void> main() async {
@@ -36,6 +37,7 @@ Future<void> main() async {
         currentUser: () async => (await tokens.load())?.user,
       ),
       quickSend: HttpQuickSendApi(api),
+      sales: HttpSalesApi(api),
       drafts: store,
     ),
   );

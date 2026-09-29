@@ -49,6 +49,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         customer.name,
         draft.lines,
         draft.key,
+        opportunity: draft.opportunity?.name,
       );
       draft.clear();
       if (!mounted) return;

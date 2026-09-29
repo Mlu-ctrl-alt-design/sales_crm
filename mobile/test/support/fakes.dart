@@ -11,6 +11,8 @@ import 'package:daystar_sales/dashboard/models.dart';
 import 'package:daystar_sales/quick_send/draft.dart';
 import 'package:daystar_sales/quick_send/models.dart';
 import 'package:daystar_sales/quick_send/quick_send_api.dart';
+import 'package:daystar_sales/sales/models.dart';
+import 'package:daystar_sales/sales/sales_api.dart';
 import 'package:daystar_sales/shell/home_shell.dart';
 import 'package:daystar_sales/startup/app_status.dart';
 import 'package:daystar_sales/startup/app_status_service.dart';
@@ -126,6 +128,11 @@ class FakeQuickSendApi implements QuickSendApi {
   ApiException? emailError;
 
   final submitKeys = <String>[];
+
+  /// The opportunity each submit was linked to, in order.
+  final submitOpportunities = <String?>[];
+  final invoicedQuotes = <String>[];
+  ApiException? invoiceError;
   final created = <String, DocSummary>{};
   final emails = <({String name, List<String> to})>[];
   final pdfDownloads = <String>[];
@@ -174,8 +181,9 @@ class FakeQuickSendApi implements QuickSendApi {
   Future<DocSummary> preview(
     DocKind kind,
     String customer,
-    List<DraftLine> lines,
-  ) async {
+    List<DraftLine> lines, {
+    String? opportunity,
+  }) async {
     previews++;
     if (previewError != null) throw previewError!;
     return _build(kind, customer, lines);
@@ -186,9 +194,11 @@ class FakeQuickSendApi implements QuickSendApi {
     DocKind kind,
     String customer,
     List<DraftLine> lines,
-    String key,
-  ) async {
+    String key, {
+    String? opportunity,
+  }) async {
     submitKeys.add(key);
+    submitOpportunities.add(opportunity);
     if (submitError != null) {
       final error = submitError!;
       submitError = null;
@@ -207,6 +217,28 @@ class FakeQuickSendApi implements QuickSendApi {
       throw ApiException('No answer', ApiErrorKind.offline);
     }
     return doc;
+  }
+
+  /// Like `sales.quote_to_invoice`: one invoice per quote.
+  @override
+  Future<DocSummary> invoiceFromQuote(String quotation) async {
+    invoicedQuotes.add(quotation);
+    if (invoiceError != null) throw invoiceError!;
+    final quote = created.values.firstWhere((doc) => doc.name == quotation);
+    return created['invoice-$quotation'] ??= DocSummary(
+      kind: DocKind.invoice,
+      name: 'ACC-SINV-2026-${(created.length + 1).toString().padLeft(5, '0')}',
+      customer: quote.customer,
+      customerName: quote.customerName,
+      currency: quote.currency,
+      canEditPrices: quote.canEditPrices,
+      lines: quote.lines,
+      taxes: quote.taxes,
+      netTotal: quote.netTotal,
+      totalTaxes: quote.totalTaxes,
+      total: quote.total,
+      send: quote.send,
+    );
   }
 
   @override
@@ -284,11 +316,13 @@ class FakeQuickSendApi implements QuickSendApi {
 HomeShell testHome({
   FakeDashboardApi? dashboard,
   FakeQuickSendApi? api,
+  FakeSalesApi? sales,
   MemoryStore? drafts,
   List<String>? shared,
 }) => HomeShell(
   dashboard: dashboard ?? FakeDashboardApi(),
   quickSend: api ?? FakeQuickSendApi(),
+  sales: sales ?? FakeSalesApi(),
   drafts: drafts ?? MemoryStore(),
   sharePdf: (pdf, fileName, {origin}) async => shared?.add(fileName),
 );
@@ -366,3 +400,205 @@ Map<String, dynamic> repJson({bool linked = true}) => {
   },
   'pipeline': _pipeline(),
 };
+
+/// Behaves like `daystar_mobile.api.sales`, in memory.
+class FakeSalesApi implements SalesApi {
+  FakeSalesApi() {
+    leads['CRM-LEAD-2026-00001'] = _leadJson(
+      'CRM-LEAD-2026-00001',
+      'Thandi Nkosi',
+      company: 'Bright Farms',
+      email: 'thandi@bright.co.za',
+      mobile: '0821234567',
+    );
+    leads['CRM-LEAD-2026-00002'] = _leadJson(
+      'CRM-LEAD-2026-00002',
+      'Sipho Dlamini',
+      mobile: '0739876543',
+      owner: null,
+    );
+  }
+
+  final leads = <String, Map<String, dynamic>>{};
+  final opportunities = <String, Map<String, dynamic>>{};
+
+  /// Lead name → customer, once made.
+  final customers = <String, CustomerOption>{};
+  final leadFilters = <LeadFilter>[];
+  final createdCustomers = <CustomerOption>[];
+  ApiException? error;
+
+  Map<String, dynamic> _leadJson(
+    String name,
+    String leadName, {
+    String? company,
+    String? email,
+    String? mobile,
+    String? owner = 'mlu@thedaystar.co.za',
+    String status = 'Lead',
+  }) => {
+    'name': name,
+    'lead_name': leadName,
+    'company_name': company,
+    'email_id': email,
+    'mobile_no': mobile,
+    'status': status,
+    'lead_owner': owner,
+    'created': '2026-09-20',
+  };
+
+  @override
+  Future<List<LeadRow>> listLeads(LeadFilter filter, String text) async {
+    leadFilters.add(filter);
+    if (error != null) throw error!;
+    return [
+      for (final json in leads.values.toList().reversed)
+        if ((filter != LeadFilter.unassigned || json['lead_owner'] == null) &&
+            '${json['lead_name']} ${json['company_name']}'
+                .toLowerCase()
+                .contains(text.toLowerCase()))
+          LeadRow.fromJson(json),
+    ];
+  }
+
+  @override
+  Future<LeadDetail> getLead(String name) async {
+    final json = leads[name]!;
+    final customer = customers[name];
+    return LeadDetail.fromJson({
+      ...json,
+      'customer': customer?.toJson(),
+      'opportunities': [
+        for (final o in opportunities.values)
+          if (o['opportunity_from'] == 'Lead' && o['party_name'] == name) o,
+      ],
+      'can_convert': true,
+    });
+  }
+
+  @override
+  Future<LeadDetail> createLead(NewLead lead) async {
+    if (error != null) throw error!;
+    final name =
+        'CRM-LEAD-2026-${(leads.length + 1).toString().padLeft(5, '0')}';
+    leads[name] = {
+      ..._leadJson(
+        name,
+        [lead.firstName, ?lead.lastName].join(' '),
+        company: lead.companyName,
+        email: lead.email,
+        mobile: lead.mobile,
+      ),
+      'first_name': lead.firstName,
+      'notes': lead.notes,
+    };
+    return getLead(name);
+  }
+
+  @override
+  Future<OpportunityDetail> leadToOpportunity(
+    String lead, {
+    double? amount,
+    DateTime? expectedClosing,
+  }) async {
+    final json = leads[lead]!;
+    json['status'] = 'Opportunity';
+    return _addOpportunity(
+      from: 'Lead',
+      party: lead,
+      title: (json['company_name'] ?? json['lead_name']) as String,
+      amount: amount,
+    );
+  }
+
+  @override
+  Future<List<OpportunityRow>> listOpportunities(
+    OpportunityFilter filter,
+    String text,
+  ) async => [
+    for (final json in opportunities.values) OpportunityRow.fromJson(json),
+  ];
+
+  @override
+  Future<OpportunityDetail> getOpportunity(String name) async {
+    final json = opportunities[name]!;
+    final customer = json['opportunity_from'] == 'Customer'
+        ? CustomerOption(
+            name: json['party_name'] as String,
+            customerName: json['title'] as String,
+          )
+        : customers[json['party_name']];
+    return OpportunityDetail.fromJson({
+      ...json,
+      'customer': customer?.toJson(),
+      'quotes': const [],
+    });
+  }
+
+  @override
+  Future<OpportunityDetail> createOpportunity(
+    String customer, {
+    double? amount,
+    DateTime? expectedClosing,
+    String? notes,
+  }) async => _addOpportunity(
+    from: 'Customer',
+    party: customer,
+    title: customer,
+    amount: amount,
+  );
+
+  Future<OpportunityDetail> _addOpportunity({
+    required String from,
+    required String party,
+    required String title,
+    double? amount,
+  }) {
+    final name =
+        'CRM-OPP-2026-${(opportunities.length + 1).toString().padLeft(5, '0')}';
+    opportunities[name] = {
+      'name': name,
+      'opportunity_from': from,
+      'party_name': party,
+      'title': title,
+      'status': 'Open',
+      'amount': amount ?? 0,
+      'currency': 'ZAR',
+      'created': '2026-09-29',
+    };
+    return getOpportunity(name);
+  }
+
+  @override
+  Future<CustomerOption> createCustomer({
+    required String name,
+    required bool isCompany,
+    String? email,
+    String? mobile,
+  }) async {
+    final customer = CustomerOption(
+      name: name,
+      customerName: name,
+      email: email,
+      mobile: mobile,
+    );
+    createdCustomers.add(customer);
+    return customer;
+  }
+
+  @override
+  Future<CustomerOption> makeCustomer({
+    String? lead,
+    String? opportunity,
+  }) async {
+    lead ??= opportunities[opportunity]!['party_name'] as String;
+    final json = leads[lead]!;
+    json['status'] = 'Converted';
+    return customers[lead] ??= CustomerOption(
+      // Shares acme's id so the quick-send fake can price for it.
+      name: acme.name,
+      customerName: (json['company_name'] ?? json['lead_name']) as String,
+      email: json['email_id'] as String?,
+    );
+  }
+}

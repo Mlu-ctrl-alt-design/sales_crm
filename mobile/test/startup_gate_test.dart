@@ -21,6 +21,7 @@ Future<void> pumpApp(
       installedVersion: installedVersion,
       dashboard: FakeDashboardApi(),
       quickSend: FakeQuickSendApi(),
+      sales: FakeSalesApi(),
       drafts: MemoryStore(),
     ),
   );
@@ -92,13 +93,13 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
-  testWidgets('open config shows the three hero tabs', (tester) async {
+  testWidgets('open config shows the hero tabs', (tester) async {
     await pumpApp(
       tester,
       () async => const AppStatus(enabled: true, maintenanceMode: false),
     );
     expect(find.byType(NavigationBar), findsOneWidget);
-    for (final label in ['DASHBOARD', 'ASSISTANT', 'QUICK SEND']) {
+    for (final label in ['DASHBOARD', 'SALES', 'ASSISTANT', 'QUICK SEND']) {
       expect(find.widgetWithText(NavigationDestination, label), findsOneWidget);
     }
   });

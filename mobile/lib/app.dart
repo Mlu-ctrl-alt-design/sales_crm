@@ -8,6 +8,7 @@ import 'auth/login_screen.dart';
 import 'auth/unlock_screens.dart';
 import 'dashboard/dashboard_api.dart';
 import 'quick_send/quick_send_api.dart';
+import 'sales/sales_api.dart';
 import 'shell/home_shell.dart';
 import 'startup/app_status_service.dart';
 import 'startup/startup_gate.dart';
@@ -23,6 +24,7 @@ class DaystarApp extends StatelessWidget {
     required this.installedVersion,
     required this.dashboard,
     required this.quickSend,
+    required this.sales,
     required this.drafts,
   });
 
@@ -33,6 +35,7 @@ class DaystarApp extends StatelessWidget {
   final String installedVersion;
   final DashboardApi dashboard;
   final QuickSendApi quickSend;
+  final SalesApi sales;
   final KeyValueStore drafts;
 
   @override
@@ -51,6 +54,7 @@ class DaystarApp extends StatelessWidget {
           home: HomeShell(
             dashboard: dashboard,
             quickSend: quickSend,
+            sales: sales,
             drafts: drafts,
           ),
         ),

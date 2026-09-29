@@ -20,16 +20,23 @@ abstract class QuickSendApi {
   Future<DocSummary> preview(
     DocKind kind,
     String customer,
-    List<DraftLine> lines,
-  );
+    List<DraftLine> lines, {
+    String? opportunity,
+  });
 
   /// Creates and submits once per [key]; a retry returns the same document.
+  /// A quote for an [opportunity] is linked to it.
   Future<DocSummary> submit(
     DocKind kind,
     String customer,
     List<DraftLine> lines,
-    String key,
-  );
+    String key, {
+    String? opportunity,
+  });
+
+  /// The submitted invoice made from a submitted quote; the same one on
+  /// every call (`daystar_mobile.api.sales.quote_to_invoice`).
+  Future<DocSummary> invoiceFromQuote(String quotation);
 
   /// Emails the PDF; returns the address it was sent from.
   Future<String> sendEmail(
@@ -92,12 +99,14 @@ class HttpQuickSendApi implements QuickSendApi {
   Future<DocSummary> preview(
     DocKind kind,
     String customer,
-    List<DraftLine> lines,
-  ) async {
+    List<DraftLine> lines, {
+    String? opportunity,
+  }) async {
     final result = await _client.post('$_base.preview', {
       'doctype': kind.doctype,
       'customer': customer,
       'items': [for (final line in lines) line.toRequest()],
+      'opportunity': ?opportunity,
     });
     return DocSummary.fromJson(result as Map<String, dynamic>);
   }
@@ -107,14 +116,25 @@ class HttpQuickSendApi implements QuickSendApi {
     DocKind kind,
     String customer,
     List<DraftLine> lines,
-    String key,
-  ) async {
+    String key, {
+    String? opportunity,
+  }) async {
     final result = await _client.post('$_base.submit', {
       'doctype': kind.doctype,
       'customer': customer,
       'items': [for (final line in lines) line.toRequest()],
       'key': key,
+      'opportunity': ?opportunity,
     });
+    return DocSummary.fromJson(result as Map<String, dynamic>);
+  }
+
+  @override
+  Future<DocSummary> invoiceFromQuote(String quotation) async {
+    final result = await _client.post(
+      'daystar_mobile.api.sales.quote_to_invoice',
+      {'quotation': quotation},
+    );
     return DocSummary.fromJson(result as Map<String, dynamic>);
   }
 

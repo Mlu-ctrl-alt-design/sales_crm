@@ -97,6 +97,7 @@ class _QuickSendScreenState extends State<QuickSendScreen> {
         _draft.kind,
         customer.name,
         _draft.lines,
+        opportunity: _draft.opportunity?.name,
       );
       if (!mounted || request != _request) return;
       setState(() {
@@ -325,6 +326,35 @@ class _QuickSendScreenState extends State<QuickSendScreen> {
                     ),
                   ),
                 ),
+              if (_draft.opportunity case final opportunity?) ...[
+                const SizedBox(height: 8),
+                Container(
+                  key: const Key('draft-opportunity'),
+                  padding: const EdgeInsets.only(left: 12),
+                  color: DaystarColors.subtle,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.flag_outlined, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'For ${opportunity.title} · ${opportunity.name}',
+                          style: text.bodySmall?.copyWith(
+                            color: DaystarColors.ink,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const Key('unlink-opportunity'),
+                        tooltip: 'Not for this opportunity',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: _draft.clearOpportunity,
+                        icon: const Icon(Icons.close, size: 18),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 28),
               const Eyebrow('Items'),
               const SizedBox(height: 4),

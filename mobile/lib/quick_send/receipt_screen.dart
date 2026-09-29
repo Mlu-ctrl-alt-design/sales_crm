@@ -42,6 +42,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   _Status _share = _Status.idle;
   String? _shareError;
 
+  _Status _invoice = _Status.idle;
+  String? _invoiceError;
+
   DocSummary get _doc => widget.doc;
 
   @override
@@ -110,6 +113,56 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       setState(() {
         _share = _Status.failed;
         _shareError = e.message;
+      });
+    }
+  }
+
+  /// The quote accepted: invoice it as quoted, then send that.
+  Future<void> _makeInvoice() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Make invoice?'),
+        content: Text(
+          'Invoices ${_doc.customerName} '
+          '${formatMoney(_doc.total, _doc.currency)}, as quoted in '
+          '${_doc.name}. The invoice is submitted straight away.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('confirm-make-invoice'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Make invoice'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    setState(() {
+      _invoice = _Status.busy;
+      _invoiceError = null;
+    });
+    try {
+      final invoice = await widget.api.invoiceFromQuote(_doc.name!);
+      if (!mounted) return;
+      await Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => ReceiptScreen(
+            api: widget.api,
+            doc: invoice,
+            sharePdf: widget.sharePdf,
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _invoice = _Status.failed;
+        _invoiceError = e.message;
       });
     }
   }
@@ -246,6 +299,34 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
               _shareError!,
               style: text.bodyMedium?.copyWith(color: DaystarColors.moneyOut),
             ),
+          ],
+          if (_doc.kind == DocKind.quote && _doc.name != null) ...[
+            const SizedBox(height: 36),
+            const Eyebrow('Accepted?'),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              key: const Key('make-invoice'),
+              onPressed: _invoice == _Status.busy ? null : _makeInvoice,
+              icon: _invoice == _Status.busy
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.receipt_long_outlined),
+              label: Text(
+                _invoice == _Status.busy
+                    ? 'Making the invoice…'
+                    : 'Make invoice',
+              ),
+            ),
+            if (_invoiceError != null) ...[
+              const SizedBox(height: 10),
+              Text(
+                _invoiceError!,
+                key: const Key('invoice-error'),
+                style: text.bodyMedium?.copyWith(color: DaystarColors.moneyOut),
+              ),
+            ],
           ],
         ],
       ),
