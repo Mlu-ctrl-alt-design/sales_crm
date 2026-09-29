@@ -4,7 +4,7 @@ from datetime import date
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import flt, getdate, nowdate
+from frappe.utils import add_months, flt, getdate, nowdate
 
 from daystar_mobile.api import dashboard
 from daystar_mobile.tests.test_price_lock import REP, setup_fixtures
@@ -47,6 +47,22 @@ class TestPeriods(IntegrationTestCase):
 		self.assertLessEqual(quarter["from"], today)
 		self.assertEqual((quarter["from"].month - fy_start.month) % 3, 0)
 		self.assertLess(quarter["prev_to"], quarter["from"])
+
+	def test_a_chosen_month_compares_whole_months(self):
+		span = self.span("month:2026-03", "2026-09-27")
+		self.assertEqual(
+			(span["from"], span["to"], span["prev_from"], span["prev_to"]),
+			(date(2026, 3, 1), date(2026, 3, 31), date(2026, 2, 1), date(2026, 2, 28)),
+		)
+
+	def test_choosing_the_current_month_runs_to_date(self):
+		self.assertEqual(self.span("month:2026-09", "2026-09-27"), self.span("this_month", "2026-09-27"))
+
+	def test_a_month_in_the_future_or_malformed_is_refused(self):
+		next_month = getdate(add_months(nowdate(), 1))
+		for period in (f"month:{next_month:%Y-%m}", "month:2026-13", "month:26-07"):
+			with self.assertRaises(frappe.ValidationError):
+				dashboard.get(period)
 
 	def test_unknown_period_is_refused(self):
 		with self.assertRaises(frappe.ValidationError):

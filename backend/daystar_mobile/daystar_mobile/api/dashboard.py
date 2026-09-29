@@ -13,6 +13,7 @@ previous period (1-27 Sep against 1-27 Aug), so the app can show a change.
 Only the app's company (`scope.get_company`) is ever counted.
 """
 
+import re
 from datetime import date
 
 import frappe
@@ -23,6 +24,8 @@ from frappe.utils import add_days, add_months, flt, get_first_day, get_last_day,
 from daystar_mobile.scope import get_company
 
 PERIODS = ("this_month", "last_month", "this_quarter", "this_fy")
+# Any whole month, e.g. "month:2026-07".
+_MONTH = re.compile(r"^month:(\d{4})-(\d{2})$")
 OWNER_REPORTS = ("Profit and Loss Statement", "Accounts Receivable")
 CACHE_SECONDS = 300
 
@@ -33,7 +36,7 @@ OPEN_QUOTE_STATUSES = ("Open", "Replied")
 
 @frappe.whitelist(methods=["GET"])
 def get(period: str = "this_month", refresh: int = 0):
-	if period not in PERIODS:
+	if period not in PERIODS and not _MONTH.match(period or ""):
 		frappe.throw(_("Unknown period."), frappe.ValidationError)
 
 	company = get_company()
@@ -76,8 +79,23 @@ def resolve_period(period: str, today: date, company: str) -> dict:
 
 	Periods to date compare with the same stretch of the previous period;
 	last month compares with the whole month before. Quarters and years are
-	fiscal, as the P&L report's periods are.
+	fiscal, as the P&L report's periods are. A chosen month ("month:2026-07")
+	compares with the whole month before it; the current month runs to date,
+	as "this_month" does.
 	"""
+	if match := _MONTH.match(period):
+		year, month = int(match[1]), int(match[2])
+		if not 1 <= month <= 12:
+			frappe.throw(_("Unknown period."), frappe.ValidationError)
+		start = date(year, month, 1)
+		if start > today:
+			frappe.throw(_("That month hasn't started yet."), frappe.ValidationError)
+		if start == get_first_day(today):
+			period = "this_month"
+		else:
+			prev_start = add_months(start, -1)
+			return _span(start, get_last_day(start), prev_start, get_last_day(prev_start))
+
 	if period == "this_month":
 		start, end = get_first_day(today), today
 		return _span(start, end, add_months(start, -1), add_months(end, -1))
