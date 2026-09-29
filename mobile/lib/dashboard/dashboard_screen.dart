@@ -85,6 +85,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _chooseMonth() async {
+    final month = await showModalBottomSheet<DashboardPeriod>(
+      context: context,
+      builder: (_) => _MonthSheet(
+        now: widget.now(),
+        initial: _period.month ?? widget.now(),
+      ),
+    );
+    if (month != null) _select(month);
+  }
+
   void _select(DashboardPeriod period) {
     if (period == _period) return;
     setState(() {
@@ -105,7 +116,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.fromLTRB(0, 16, 0, 112),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          _PeriodPicker(selected: _period, onSelected: _select),
+          _PeriodPicker(
+            selected: _period,
+            onSelected: _select,
+            onChooseMonth: _chooseMonth,
+          ),
           if (data == null && _error == null)
             const Padding(
               padding: EdgeInsets.all(48),
@@ -128,10 +143,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 class _PeriodPicker extends StatelessWidget {
-  const _PeriodPicker({required this.selected, required this.onSelected});
+  const _PeriodPicker({
+    required this.selected,
+    required this.onSelected,
+    required this.onChooseMonth,
+  });
 
   final DashboardPeriod selected;
   final ValueChanged<DashboardPeriod> onSelected;
+  final VoidCallback onChooseMonth;
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +179,163 @@ class _PeriodPicker extends StatelessWidget {
             ),
             const SizedBox(width: 8),
           ],
+          ChoiceChip(
+            key: const Key('period-month'),
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(selected.month == null ? 'Pick month' : selected.label),
+                const SizedBox(width: 2),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 18,
+                  color: selected.month == null
+                      ? DaystarColors.ink
+                      : DaystarColors.surface,
+                ),
+              ],
+            ),
+            selected: selected.month != null,
+            showCheckmark: false,
+            shape: const RoundedRectangleBorder(),
+            side: const BorderSide(color: DaystarColors.ink),
+            backgroundColor: DaystarColors.surface,
+            selectedColor: DaystarColors.ink,
+            labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: selected.month != null
+                  ? DaystarColors.surface
+                  : DaystarColors.ink,
+            ),
+            onSelected: (_) => onChooseMonth(),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+const _monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+/// Month and year dropdowns; pops with that month's period. The current
+/// month comes back as "This month", which is the same figures.
+class _MonthSheet extends StatefulWidget {
+  const _MonthSheet({required this.now, required this.initial});
+
+  final DateTime now;
+  final DateTime initial;
+
+  /// How many years back the year dropdown goes.
+  static const yearsBack = 5;
+
+  @override
+  State<_MonthSheet> createState() => _MonthSheetState();
+}
+
+class _MonthSheetState extends State<_MonthSheet> {
+  late int _year = widget.initial.year;
+  late int _month = widget.initial.month;
+
+  bool _isFuture(int year, int month) =>
+      year > widget.now.year ||
+      (year == widget.now.year && month > widget.now.month);
+
+  void _setYear(int year) => setState(() {
+    _year = year;
+    // A month later this year than today moves back to this month.
+    if (_isFuture(_year, _month)) _month = widget.now.month;
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final now = widget.now;
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Show a month', style: text.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              'That whole month, against the month before it.',
+              style: text.bodySmall,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: DropdownButtonFormField<int>(
+                    // Rebuilt with the year, which can move the month back.
+                    key: ValueKey('month-dropdown-$_year'),
+                    initialValue: _month,
+                    decoration: const InputDecoration(labelText: 'Month'),
+                    items: [
+                      for (var m = 1; m <= 12; m++)
+                        DropdownMenuItem(
+                          value: m,
+                          enabled: !_isFuture(_year, m),
+                          child: Text(
+                            _monthNames[m - 1],
+                            style: _isFuture(_year, m)
+                                ? text.bodyLarge?.copyWith(
+                                    color: DaystarColors.muted,
+                                  )
+                                : null,
+                          ),
+                        ),
+                    ],
+                    onChanged: (m) => setState(() => _month = m ?? _month),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<int>(
+                    key: const Key('year-dropdown'),
+                    initialValue: _year,
+                    decoration: const InputDecoration(labelText: 'Year'),
+                    items: [
+                      for (
+                        var y = now.year;
+                        y >= now.year - _MonthSheet.yearsBack;
+                        y--
+                      )
+                        DropdownMenuItem(value: y, child: Text('$y')),
+                    ],
+                    onChanged: (y) => _setYear(y ?? _year),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              key: const Key('month-show'),
+              onPressed: () => Navigator.pop(
+                context,
+                _year == now.year && _month == now.month
+                    ? DashboardPeriod.thisMonth
+                    : DashboardPeriod.month(_year, _month),
+              ),
+              child: Text('Show ${_monthNames[_month - 1]} $_year'),
+            ),
+          ],
+        ),
       ),
     );
   }

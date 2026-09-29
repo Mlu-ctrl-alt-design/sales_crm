@@ -146,6 +146,70 @@ void main() {
     ]);
   });
 
+  testWidgets('pick a month and year: that month is loaded and labelled', (
+    tester,
+  ) async {
+    final api = FakeDashboardApi();
+    await pumpDashboard(tester, api);
+
+    await tester.ensureVisible(find.byKey(const Key('period-month')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('period-month')));
+    await tester.pumpAndSettle();
+    expect(find.text('Show a month'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('year-dropdown')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2025').last);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) =>
+            w is DropdownButtonFormField<int> &&
+            w.key != const Key('year-dropdown'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('July').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('month-show')));
+    await tester.pumpAndSettle();
+
+    expect(api.calls.last, (DashboardPeriod.month(2025, 7), false));
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('period-month')),
+        matching: find.text('Jul 2025'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the current month from the picker is just This month', (
+    tester,
+  ) async {
+    final api = FakeDashboardApi();
+    await pumpDashboard(tester, api);
+
+    await tester.ensureVisible(find.byKey(const Key('period-month')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('period-month')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('month-show')));
+    await tester.pumpAndSettle();
+
+    // Already loaded, so nothing new is fetched.
+    expect(api.calls, [(DashboardPeriod.thisMonth, false)]);
+  });
+
+  test('a chosen month has its own key and label', () {
+    final july = DashboardPeriod.month(2026, 7);
+    expect(july.key, 'month:2026-07');
+    expect(july.label, 'Jul 2026');
+    expect(july, DashboardPeriod.month(2026, 7));
+    expect(july == DashboardPeriod.thisMonth, isFalse);
+  });
+
   testWidgets('pull to refresh asks the server to skip its cache', (
     tester,
   ) async {

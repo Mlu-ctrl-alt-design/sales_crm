@@ -1,15 +1,56 @@
-/// The periods the dashboard can show, as `daystar_mobile.api.dashboard`
-/// names them.
-enum DashboardPeriod {
-  thisMonth('this_month', 'This month'),
-  lastMonth('last_month', 'Last month'),
-  thisQuarter('this_quarter', 'This quarter'),
-  thisYear('this_fy', 'This year');
+const _monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
-  const DashboardPeriod(this.key, this.label);
+/// A period the dashboard can show, as `daystar_mobile.api.dashboard`
+/// names it: one of the presets, or any whole month ("month:2026-07").
+class DashboardPeriod {
+  const DashboardPeriod._(this.key, this.label, {this.month});
+
+  /// That calendar month; the current month runs to date.
+  factory DashboardPeriod.month(int year, int month) {
+    final key = '$year-${month.toString().padLeft(2, '0')}';
+    return DashboardPeriod._(
+      'month:$key',
+      '${_monthNames[month - 1]} $year',
+      month: DateTime(year, month),
+    );
+  }
+
+  static const thisMonth = DashboardPeriod._('this_month', 'This month');
+  static const lastMonth = DashboardPeriod._('last_month', 'Last month');
+  static const thisQuarter = DashboardPeriod._('this_quarter', 'This quarter');
+  static const thisYear = DashboardPeriod._('this_fy', 'This year');
+
+  /// The presets, in picker order.
+  static const values = [thisMonth, lastMonth, thisQuarter, thisYear];
 
   final String key;
   final String label;
+
+  /// Set for a chosen month (its first day).
+  final DateTime? month;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DashboardPeriod && other.key == key;
+
+  @override
+  int get hashCode => key.hashCode;
+
+  @override
+  String toString() => 'DashboardPeriod($key)';
 }
 
 /// A figure for the period and the same figure for the stretch before it.
