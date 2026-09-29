@@ -22,6 +22,7 @@ Future<void> pumpApp(
       dashboard: FakeDashboardApi(),
       quickSend: FakeQuickSendApi(),
       sales: FakeSalesApi(),
+      assistant: FakeAssistantApi(),
       drafts: MemoryStore(),
     ),
   );

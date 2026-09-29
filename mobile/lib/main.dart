@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'api/api_client.dart';
 import 'app.dart';
+import 'assistant/assistant_api.dart';
 import 'auth/biometric_lock.dart';
 import 'auth/device_prefs.dart';
 import 'auth/key_value_store.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
       ),
       quickSend: HttpQuickSendApi(api),
       sales: HttpSalesApi(api),
+      assistant: HttpAssistantApi(api),
       drafts: store,
     ),
   );

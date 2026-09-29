@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:daystar_sales/api/api_client.dart';
+import 'package:daystar_sales/assistant/assistant_api.dart';
 import 'package:daystar_sales/auth/auth_repository.dart';
 import 'package:daystar_sales/auth/biometric_lock.dart';
 import 'package:daystar_sales/auth/device_prefs.dart';
@@ -317,12 +318,14 @@ HomeShell testHome({
   FakeDashboardApi? dashboard,
   FakeQuickSendApi? api,
   FakeSalesApi? sales,
+  FakeAssistantApi? assistant,
   MemoryStore? drafts,
   List<String>? shared,
 }) => HomeShell(
   dashboard: dashboard ?? FakeDashboardApi(),
   quickSend: api ?? FakeQuickSendApi(),
   sales: sales ?? FakeSalesApi(),
+  assistant: assistant ?? FakeAssistantApi(),
   drafts: drafts ?? MemoryStore(),
   sharePdf: (pdf, fileName, {origin}) async => shared?.add(fileName),
 );
@@ -601,4 +604,46 @@ class FakeSalesApi implements SalesApi {
       email: json['email_id'] as String?,
     );
   }
+}
+
+/// Answers from a script: each `chat` returns the next reply.
+class FakeAssistantApi implements AssistantApi {
+  FakeAssistantApi([List<Object>? replies]) : replies = replies ?? [];
+
+  /// [AssistantReply]s or exceptions, in order.
+  final List<Object> replies;
+  final messages = <String>[];
+  final histories = <List<Map<String, Object?>>>[];
+  final confirmed = <String>[];
+  final cancelled = <String>[];
+  Map<String, dynamic> confirmResult = const {};
+  ApiException? confirmError;
+
+  @override
+  Future<AssistantReply> chat(
+    String message,
+    List<Map<String, Object?>> history,
+  ) async {
+    messages.add(message);
+    histories.add(history);
+    if (replies.isEmpty) {
+      return const AssistantReply(
+        status: ReplyStatus.answered,
+        reply: 'Nothing scripted.',
+      );
+    }
+    final next = replies.removeAt(0);
+    if (next is Exception) throw next;
+    return next as AssistantReply;
+  }
+
+  @override
+  Future<Map<String, dynamic>> confirm(String actionId) async {
+    confirmed.add(actionId);
+    if (confirmError != null) throw confirmError!;
+    return confirmResult;
+  }
+
+  @override
+  Future<void> cancel(String actionId) async => cancelled.add(actionId);
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../assistant/assistant_api.dart';
+import '../assistant/assistant_screen.dart';
+import '../assistant/conversation.dart';
 import '../auth/key_value_store.dart';
 import '../dashboard/dashboard_api.dart';
 import '../dashboard/dashboard_screen.dart';
@@ -28,12 +31,14 @@ class HomeShell extends StatefulWidget {
     required this.dashboard,
     required this.quickSend,
     required this.sales,
+    required this.assistant,
     required this.drafts,
     this.sharePdf = shareViaSheet,
   });
 
   final DashboardApi dashboard;
   final SalesApi sales;
+  final AssistantApi assistant;
 
   final QuickSendApi quickSend;
 
@@ -48,6 +53,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   HeroTab _tab = HeroTab.dashboard;
   QuickSendDraft? _draft;
+  late final _conversation = Conversation(widget.assistant);
   final _salesList = GlobalKey<SalesScreenState>();
 
   late final _salesDeps = SalesDeps(
@@ -68,6 +74,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void dispose() {
     _draft?.dispose();
+    _conversation.dispose();
     super.dispose();
   }
 
@@ -231,9 +238,15 @@ class _HomeShellState extends State<HomeShell> {
                 ),
         HeroTab.dashboard => DashboardScreen(api: widget.dashboard),
         HeroTab.sales => SalesScreen(key: _salesList, deps: _salesDeps),
-        _ => _PlaceholderTab(tab: _tab),
+        HeroTab.assistant => AssistantScreen(
+          conversation: _conversation,
+          documents: widget.quickSend,
+          sharePdf: widget.sharePdf,
+        ),
       },
-      floatingActionButton: _tab == HeroTab.quickSend
+      // Not on the create flow itself, nor over the assistant's message box.
+      floatingActionButton:
+          _tab == HeroTab.quickSend || _tab == HeroTab.assistant
           ? null
           : FloatingActionButton(
               key: const Key('quick-create'),
@@ -326,40 +339,6 @@ class QuickCreateSheet extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({required this.tab});
-
-  final HeroTab tab;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final (title, body) = switch (tab) {
-      HeroTab.dashboard => (
-        'Sales health, at a glance',
-        'Invoiced profit, money in and out, receivables and your pipeline '
-            'will show here.',
-      ),
-      HeroTab.assistant => (
-        'Ask about the business',
-        'Questions are answered from ERPNext. Anything that changes a '
-            'record waits for your tap.',
-      ),
-      HeroTab.quickSend || HeroTab.sales => ('', ''),
-    };
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-      children: [
-        Text(title, style: text.titleLarge),
-        const SizedBox(height: 8),
-        Text(body, style: text.bodyLarge?.copyWith(color: DaystarColors.muted)),
-        const SizedBox(height: 12),
-        const Eyebrow('Coming soon', color: DaystarColors.accentDeep),
-      ],
     );
   }
 }

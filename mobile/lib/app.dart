@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'assistant/assistant_api.dart';
 import 'auth/auth_repository.dart';
 import 'auth/key_value_store.dart';
 import 'auth/biometric_lock.dart';
@@ -25,6 +26,7 @@ class DaystarApp extends StatelessWidget {
     required this.dashboard,
     required this.quickSend,
     required this.sales,
+    required this.assistant,
     required this.drafts,
   });
 
@@ -36,6 +38,7 @@ class DaystarApp extends StatelessWidget {
   final DashboardApi dashboard;
   final QuickSendApi quickSend;
   final SalesApi sales;
+  final AssistantApi assistant;
   final KeyValueStore drafts;
 
   @override
@@ -55,6 +58,7 @@ class DaystarApp extends StatelessWidget {
             dashboard: dashboard,
             quickSend: quickSend,
             sales: sales,
+            assistant: assistant,
             drafts: drafts,
           ),
         ),
