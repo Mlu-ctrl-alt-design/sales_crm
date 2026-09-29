@@ -88,8 +88,8 @@ flowchart LR
 
 **Screen split**
 
-- Bespoke Flutter screens: Dashboard, Assistant chat, Quick quote/invoice + send.
-- Mobile Control generic forms: Lead, Opportunity, Customer, Contact, and read views of any other exposed DocType.
+- Bespoke Flutter screens: Dashboard, Sales (leads, opportunities, customers), Assistant chat, Quick quote/invoice + send.
+- The sales process (lead → opportunity → quote → invoice, and new customers) is bespoke too, on `daystar_mobile.api.sales`, which wraps ERPNext's own converters. Mobile Control's generic forms come from the separate `frappe-mobile-sdk` Flutter package (offline-first, its own login and sync) and have no conversion steps, so they were not adopted for these DocTypes. Contact and read views of other DocTypes are still open.
 
 **Assistant orchestration**
 
@@ -157,7 +157,7 @@ flowchart LR
 
 **P1: fast follows**
 
-- Quote → Sales Order → Invoice conversion in one tap.
+- ~~Quote → Sales Order → Invoice conversion in one tap.~~ Shipped as Quote → Invoice directly (no Sales Order), one invoice per quote.
 - Payment reminder email for overdue invoices from the receivables list.
 - Voice input in the assistant.
 - Dashboard drill-down from a KPI to the underlying list.
@@ -187,10 +187,10 @@ Kill signal: if by day 30 Mlu is still falling back to Desk to send documents, t
 
 **Open**
 
-- [ ] Confirm the screen split (bespoke hero screens; Mobile Control for the rest). Adopted as default.
+- [x] Screen split: bespoke screens for the whole sales process, not Mobile Control generic forms (see Architecture).
 - [ ] Which Claude model and monthly spend cap for the assistant. Blocks the assistant endpoint.
 - [ ] Which outgoing email account sends documents; shared Daystar address or per-rep. Blocks email send.
-- [ ] How Mobile Control renders child tables (Sales Team, items) on generic forms. Verify before relying on it.
+- [x] Child tables on generic forms: Mobile Control renders no forms; `frappe-mobile-sdk` does, including child tables. Not relied on, since the sales screens are bespoke.
 
 **Deferred**
 
