@@ -7,9 +7,9 @@ import '../forms/minimal_form_screen.dart';
 import '../forms/mobile_layout_service.dart';
 import '../theme/daystar_theme.dart';
 
-enum HeroTab { dashboard, assistant, quickSend }
+enum HeroTab { dashboard, quickSend }
 
-/// The three bespoke hero screens, plus a quick-create button on the
+/// The two bespoke hero screens, plus a quick-create button on the
 /// screens that aren't already the create flow.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key, required this.auth});
@@ -28,11 +28,6 @@ class _HomeShellState extends State<HomeShell> {
       label: 'Dashboard',
       icon: Icons.insights_outlined,
       selected: Icons.insights,
-    ),
-    HeroTab.assistant: (
-      label: 'Assistant',
-      icon: Icons.chat_bubble_outline,
-      selected: Icons.chat_bubble,
     ),
     HeroTab.quickSend: (
       label: 'Quick send',
@@ -222,11 +217,6 @@ class _PlaceholderTab extends StatelessWidget {
         'Sales health, at a glance',
         'Invoiced profit, money in and out, receivables and your pipeline '
             'will show here.',
-      ),
-      HeroTab.assistant => (
-        'Ask about the business',
-        'Questions are answered from ERPNext. Anything that changes a '
-            'record waits for your tap.',
       ),
       HeroTab.quickSend => (
         'Quote or invoice in under 90 seconds',

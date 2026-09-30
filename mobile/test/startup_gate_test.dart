@@ -89,13 +89,13 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
   });
 
-  testWidgets('open config shows the three hero tabs', (tester) async {
+  testWidgets('open config shows the hero tabs', (tester) async {
     await pumpApp(
       tester,
       () async => const AppStatus(enabled: true, maintenanceMode: false),
     );
     expect(find.byType(NavigationBar), findsOneWidget);
-    for (final label in ['Dashboard', 'Assistant', 'Quick send']) {
+    for (final label in ['Dashboard', 'Quick send']) {
       expect(find.widgetWithText(NavigationDestination, label), findsOneWidget);
     }
   });
